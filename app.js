@@ -45,6 +45,7 @@ let multiplayerMode = 'private'; // 'grand', 'quick', 'private'
 let currentQuickMatchIndex = 1;
 let isSearchingQuickMatch = false;
 let isQuickMatchRoomFull = false;
+let isManuallySwitchingMode = false;
 
 // Recording state
 let isRecording = false;
@@ -153,12 +154,11 @@ window.addEventListener('DOMContentLoaded', () => {
         updateModeIndicator();
         initMultiplayer(roomId);
     } else {
-        // We are the host! Create a room
-        multiplayerMode = 'private';
-        const randId = Math.random().toString(36).substring(2, 8).toUpperCase();
-        roomId = `TEKKIN-${randId}`;
-        isHost = true;
-        window.location.hash = roomId; // Set hash
+        // Default to Grand Arena!
+        multiplayerMode = 'grand';
+        isHost = false; // Join as guest first, auto-failover handles hosting
+        roomId = 'TEKKIN-GRAND-ARENA-JAMYLAS';
+        window.location.hash = roomId;
         updateModeIndicator();
         initMultiplayer(roomId);
     }
@@ -1136,6 +1136,7 @@ function clearRecording() {
 // --- MULTIPLAYER (WEBRTC PEERJS) ENGINE ---
 
 function initMultiplayer(id) {
+    isManuallySwitchingMode = false; // Reset flag
     updateStatusUI('connecting', '接続サーバーにログイン中...');
 
     // P2P connections are arbitrated by the PeerJS cloud signaling server
@@ -1280,6 +1281,8 @@ function handleOutgoingConnection(conn) {
         console.log('Host disconnected.');
         updateStatusUI('disconnected', '接続が切断されました');
         removeConnection(conn);
+        
+        if (isManuallySwitchingMode) return; // Skip failover during mode switch
         
         if (isSearchingQuickMatch && isQuickMatchRoomFull) {
             isQuickMatchRoomFull = false;
