@@ -1032,4 +1032,93 @@ input:checked + .switch-slider:before {
     width: 100%;
 }
 
+/* --- 合奏室マルチプレイヤー用スタイル --- */
 
+.multiplayer-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-color);
+    background: rgba(0, 0, 0, 0.2);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.status-dot.disconnected {
+    background-color: #ff0844;
+    box-shadow: 0 0 10px #ff0844;
+}
+
+.status-dot.connecting {
+    background-color: #ffb700;
+    box-shadow: 0 0 10px #ffb700;
+    animation: pulseConnecting 1s infinite alternate ease-in-out;
+}
+
+.status-dot.connected {
+    background-color: #38ef7d;
+    box-shadow: 0 0 10px #38ef7d;
+}
+
+@keyframes pulseConnecting {
+    0% { opacity: 0.3; transform: scale(0.9); }
+    100% { opacity: 1; transform: scale(1.1); }
+}
+
+.peer-count-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-left: auto;
+}
+
+/* ゲストプレイヤー用のゴーストマレット（複数色） */
+.custom-mallet.guest {
+    display: block; /* JSで座標が設定されるまで表示されません */
+}
+
+/* ゲストマレットの各色設定（CSS変数で管理） */
+.custom-mallet.guest .mallet-head {
+    background: radial-gradient(circle at 35% 35%, #ffffff 0%, var(--guest-color) 60%, var(--guest-dark) 100%);
+    border: 1px solid var(--guest-dark);
+    box-shadow: 0 0 14px var(--guest-glow);
+}
+
+/* ゲスト1: マゼンタ/ピンク */
+.custom-mallet.guest-1 {
+    --guest-color: #ff007f;
+    --guest-glow: rgba(255, 0, 127, 0.7);
+    --guest-dark: #b30059;
+}
+
+/* ゲスト2: ゴールド/イエロー */
+.custom-mallet.guest-2 {
+    --guest-color: #ffb700;
+    --guest-glow: rgba(255, 183, 0, 0.7);
+    --guest-dark: #b38000;
+}
+
+/* ゲスト3: グリーン/ライム */
+.custom-mallet.guest-3 {
+    --guest-color: #39ff14;
+    --guest-glow: rgba(57, 255, 20, 0.7);
+    --guest-dark: #1e870b;
+}
+
+/* ゲスト4: パープル/バイオレット */
+.custom-mallet.guest-4 {
+    --guest-color: #bd00ff;
+    --guest-glow: rgba(189, 0, 255, 0.7);
+    --guest-dark: #8000b3;
+}

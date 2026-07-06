@@ -308,7 +308,7 @@
                         </button>
                     </div>
                     <div class="lesson-status" id="lessonStatus">曲を選択して「練習スタート」を押してください。</div>
-                </div>
+                                </div>
 
                 <!-- 録音スタジオ -->
                 <div class="panel-section">
@@ -325,6 +325,25 @@
                         </button>
                     </div>
                     <div class="record-status" id="recordStatus">録音していません。</div>
+                </div>
+
+                <!-- 合奏マルチプレイヤー -->
+                <div class="panel-section">
+                    <h2>合奏マルチプレイヤー</h2>
+                    <div class="metronome-controls">
+                        <div class="control-item">
+                            <label>合奏URL (共有用)</label>
+                            <input type="text" id="shareUrlInput" class="glass-input" readonly value="接続中...">
+                        </div>
+                        <button id="copyShareUrlBtn" class="btn btn-primary" disabled>
+                            URLをコピーして招待
+                        </button>
+                        <div class="multiplayer-status" id="multiplayerStatus">
+                            <span class="status-dot disconnected" id="statusDot"></span>
+                            <span id="statusText">オフライン</span>
+                            <span id="peerCountLabel" class="peer-count-label"></span>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -350,7 +369,8 @@
         </div>
     </div>
 
-    <!-- Web Audio API & Logic -->
+    <!-- PeerJS & Web Audio API & Logic -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

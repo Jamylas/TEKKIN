@@ -83,6 +83,15 @@ let customMallet = null;
 let malletHead = null;
 let isTouchDevice = false;
 
+// Multiplayer (WebRTC PeerJS) State
+let peer = null;
+let connections = [];
+let roomId = '';
+let isHost = false;
+let guestMallets = {};
+let guestColorIndex = 0;
+let guestColors = {};
+
 // Recording state
 let isRecording = false;
 let recordStartTime = 0;
@@ -127,6 +136,21 @@ window.addEventListener('DOMContentLoaded', () => {
     initCanvases();
     setupEventListeners();
     animate();
+
+    // Initialize multiplayer based on URL hash
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#TEKKIN-')) {
+        roomId = hash.substring(1); // remove '#'
+        isHost = false;
+        initMultiplayer(roomId);
+    } else {
+        // We are the host! Create a room
+        const randId = Math.random().toString(36).substring(2, 8).toUpperCase();
+        roomId = `TEKKIN-${randId}`;
+        isHost = true;
+        window.location.hash = roomId; // Set hash
+        initMultiplayer(roomId);
+    }
 });
 
 function updateMalletHeadStyle() {
@@ -686,6 +710,15 @@ function strikeNote(noteName, relativeY = 0.5) {
     activeKeyGlows[noteName] = 1.0;
     spawnParticles(x, y, color);
 
+    // Broadcast note strike to peers
+    if (peer && connections.length > 0) {
+        broadcast({
+            type: 'strike',
+            note: noteName,
+            relativeY: relativeY
+        });
+    }
+
     // Handle recording
     if (isRecording) {
         recordedNotes.push({
@@ -811,10 +844,10 @@ function setupEventListeners() {
     });
 
     // Mouse movement tracking for mallet
+    let lastMouseMoveTime = 0;
     document.addEventListener('mousemove', (e) => {
         if (isTouchDevice || !customMallet) return;
         
-        // Check if mouse is hovering over the instrument container
         const isOverInstrument = e.target.closest('.instrument-container') !== null;
         
         if (isOverInstrument) {
@@ -823,17 +856,66 @@ function setupEventListeners() {
         } else {
             customMallet.style.display = 'none';
         }
+
+        // Broadcast mouse position to peers
+        const now = Date.now();
+        if (now - lastMouseMoveTime > 40) { // throttle to ~25fps updates
+            if (peer && connections.length > 0) {
+                const instContainer = document.querySelector('.instrument-container');
+                const rect = instContainer.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width;
+                const y = (e.clientY - rect.top) / rect.height;
+                const isOver = x >= 0 && x <= 1 && y >= 0 && y <= 1;
+
+                broadcast({
+                    type: 'mousemove',
+                    x: isOver ? x : -100, // offscreen
+                    y: isOver ? y : -100,
+                    malletType: currentMallet,
+                    isStriking: customMallet.classList.contains('striking')
+                });
+            }
+            lastMouseMoveTime = now;
+        }
     });
 
     document.addEventListener('mousedown', (e) => {
         if (!isTouchDevice && customMallet && e.target.closest('.instrument-container')) {
             customMallet.classList.add('striking');
+
+            // Send immediate strike state update to peers
+            if (peer && connections.length > 0) {
+                const instContainer = document.querySelector('.instrument-container');
+                const rect = instContainer.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width;
+                const y = (e.clientY - rect.top) / rect.height;
+                const isOver = x >= 0 && x <= 1 && y >= 0 && y <= 1;
+
+                broadcast({
+                    type: 'mousemove',
+                    x: isOver ? x : -100,
+                    y: isOver ? y : -100,
+                    malletType: currentMallet,
+                    isStriking: true
+                });
+            }
         }
     });
 
     document.addEventListener('mouseup', () => {
         if (customMallet) {
             customMallet.classList.remove('striking');
+
+            // Send immediate strike release state update to peers
+            if (peer && connections.length > 0) {
+                broadcast({
+                    type: 'mousemove',
+                    x: -100,
+                    y: -100,
+                    malletType: currentMallet,
+                    isStriking: false
+                });
+            }
         }
     });
 
@@ -844,6 +926,26 @@ function setupEventListeners() {
             customMallet.style.display = 'none';
         }
     }, { passive: true });
+
+    // Copy URL button listener
+    document.getElementById('copyShareUrlBtn').addEventListener('click', () => {
+        const shareUrlInput = document.getElementById('shareUrlInput');
+        shareUrlInput.select();
+        shareUrlInput.setSelectionRange(0, 99999); // for mobile
+        navigator.clipboard.writeText(shareUrlInput.value)
+            .then(() => {
+                const btn = document.getElementById('copyShareUrlBtn');
+                const origText = btn.innerHTML;
+                btn.textContent = 'コピーしました！';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-success');
+                setTimeout(() => {
+                    btn.innerHTML = origText;
+                    btn.classList.add('btn-primary');
+                    btn.classList.remove('btn-success');
+                }, 2000);
+            });
+    });
 
     // Keyboard label toggle
     document.getElementById('toggleKeyboardLabels').addEventListener('change', (e) => {
@@ -1173,4 +1275,270 @@ function animateFallingNotes() {
             k.classList.remove('guided-hint');
         }
     });
+}
+
+// --- MULTIPLAYER (WEBRTC PEERJS) ENGINE ---
+
+function initMultiplayer(id) {
+    updateStatusUI('connecting', '接続サーバーにログイン中...');
+
+    // P2P connections are arbitrated by the PeerJS cloud signaling server
+    const localPeerId = isHost ? id : `GUEST-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    
+    peer = new Peer(localPeerId, {
+        debug: 1 // Print warnings and errors only
+    });
+
+    peer.on('open', () => {
+        console.log('PeerJS server connection open. My Peer ID:', localPeerId);
+        setupShareUI();
+        
+        if (isHost) {
+            updateStatusUI('connected', 'ホストとして待機中');
+            // Host waits for guests to connect
+            peer.on('connection', (conn) => {
+                handleIncomingConnection(conn);
+            });
+        } else {
+            updateStatusUI('connecting', 'ホストに接続中...');
+            // Guest connects to Host
+            const conn = peer.connect(id);
+            handleOutgoingConnection(conn);
+        }
+    });
+
+    peer.on('error', (err) => {
+        console.error('PeerJS error:', err);
+        updateStatusUI('disconnected', '接続エラー');
+        
+        if (err.type === 'peer-not-found' && !isHost) {
+            // If host not found, maybe host closed or URL is invalid. Become host!
+            console.log('Host not found. Creating a new room as host...');
+            isHost = true;
+            const randId = Math.random().toString(36).substring(2, 8).toUpperCase();
+            roomId = `TEKKIN-${randId}`;
+            window.location.hash = roomId;
+            setTimeout(() => initMultiplayer(roomId), 1000);
+        }
+    });
+}
+
+function handleIncomingConnection(conn) {
+    conn.on('open', () => {
+        console.log('Guest connected:', conn.peer);
+        connections.push(conn);
+        assignGuestColor(conn.peer);
+        updatePeerCountUI();
+        updateStatusUI('connected', `セッション接続中`);
+        
+        // Notify other guests about new peer
+        broadcast({
+            type: 'peer_joined',
+            peerId: conn.peer
+        }, conn.peer); // exclude the new guest
+    });
+
+    conn.on('data', (data) => {
+        handleDataMessage(data, conn.peer);
+    });
+
+    conn.on('close', () => {
+        console.log('Guest disconnected:', conn.peer);
+        removeConnection(conn);
+    });
+    
+    conn.on('error', () => removeConnection(conn));
+}
+
+function handleOutgoingConnection(conn) {
+    conn.on('open', () => {
+        console.log('Connected to Host!');
+        connections.push(conn);
+        updateStatusUI('connected', `セッション接続中`);
+    });
+
+    conn.on('data', (data) => {
+        handleDataMessage(data, conn.peer);
+    });
+
+    conn.on('close', () => {
+        console.log('Host disconnected.');
+        updateStatusUI('disconnected', '接続が切断されました');
+        removeConnection(conn);
+    });
+    
+    conn.on('error', () => removeConnection(conn));
+}
+
+function handleDataMessage(data, senderId) {
+    if (data.type === 'strike') {
+        playReceivedStrike(data.note, data.relativeY, senderId);
+        
+        if (isHost) {
+            broadcast(data, senderId);
+        }
+    } else if (data.type === 'mousemove') {
+        updateGuestMallet(senderId, data.x, data.y, data.malletType, data.isStriking);
+        
+        if (isHost) {
+            broadcast(data, senderId);
+        }
+    } else if (data.type === 'peer_joined') {
+        assignGuestColor(data.peerId);
+    } else if (data.type === 'peer_left') {
+        removeGuestMallet(data.peerId);
+    }
+}
+
+function broadcast(message, excludePeerId = null) {
+    connections.forEach(conn => {
+        if (conn.peer !== excludePeerId && conn.open) {
+            conn.send(message);
+        }
+    });
+}
+
+function playReceivedStrike(note, relativeY, senderId) {
+    const colorIndex = guestColors[senderId] || 1;
+    let color = 'var(--glow-cyan)';
+    if (colorIndex === 1) color = '#ff007f';
+    else if (colorIndex === 2) color = '#ffb700';
+    else if (colorIndex === 3) color = '#39ff14';
+    else if (colorIndex === 4) color = '#bd00ff';
+    
+    const keyEl = document.querySelector(`.key[data-note="${note}"]`);
+    if (keyEl) {
+        keyEl.classList.add('active');
+        setTimeout(() => keyEl.classList.remove('active'), 100);
+        
+        const freq = parseFloat(keyEl.getAttribute('data-freq'));
+        playNoteAudio(freq, relativeY);
+        
+        const rect = keyEl.getBoundingClientRect();
+        const frameRect = document.querySelector('.glockenspiel-frame').getBoundingClientRect();
+        const x = rect.left - frameRect.left + rect.width / 2;
+        const y = rect.top - frameRect.top + rect.height / 2;
+        
+        activeKeyGlows[note] = 1.0;
+        spawnParticles(x, y, color);
+    }
+}
+
+function updateGuestMallet(peerId, x, y, malletType, isStriking) {
+    let malletEl = guestMallets[peerId];
+    if (!malletEl) {
+        malletEl = document.createElement('div');
+        malletEl.className = 'custom-mallet guest';
+        
+        const colorIdx = guestColors[peerId] || assignGuestColor(peerId);
+        malletEl.classList.add(`guest-${colorIdx}`);
+        
+        malletEl.innerHTML = `
+            <div class="mallet-inner">
+                <div class="mallet-head ${malletType}"></div>
+                <div class="mallet-shaft"></div>
+            </div>
+        `;
+        document.body.appendChild(malletEl);
+        guestMallets[peerId] = malletEl;
+    }
+    
+    if (x < 0) {
+        malletEl.style.display = 'none';
+        return;
+    }
+    
+    const instContainer = document.querySelector('.instrument-container');
+    if (instContainer) {
+        const rect = instContainer.getBoundingClientRect();
+        const clientX = rect.left + x * rect.width;
+        const clientY = rect.top + y * rect.height;
+        
+        malletEl.style.display = 'block';
+        malletEl.style.transform = `translate3d(${clientX}px, ${clientY}px, 0)`;
+    }
+    
+    const head = malletEl.querySelector('.mallet-head');
+    if (head) {
+        head.className = `mallet-head ${malletType}`;
+    }
+    
+    if (isStriking) {
+        malletEl.classList.add('striking');
+    } else {
+        malletEl.classList.remove('striking');
+    }
+}
+
+function assignGuestColor(peerId) {
+    if (guestColors[peerId]) return guestColors[peerId];
+    
+    guestColorIndex = (guestColorIndex % 4) + 1;
+    guestColors[peerId] = guestColorIndex;
+    return guestColorIndex;
+}
+
+function removeGuestMallet(peerId) {
+    const malletEl = guestMallets[peerId];
+    if (malletEl) {
+        malletEl.remove();
+        delete guestMallets[peerId];
+    }
+    delete guestColors[peerId];
+    updatePeerCountUI();
+}
+
+function removeConnection(conn) {
+    const index = connections.indexOf(conn);
+    if (index > -1) {
+        connections.splice(index, 1);
+    }
+    removeGuestMallet(conn.peer);
+    
+    if (isHost) {
+        broadcast({
+            type: 'peer_left',
+            peerId: conn.peer
+        });
+    }
+    
+    updatePeerCountUI();
+    if (connections.length === 0) {
+        if (isHost) {
+            updateStatusUI('connected', 'ホストとして待機中');
+        } else {
+            updateStatusUI('disconnected', '接続が切断されました');
+        }
+    }
+}
+
+function setupShareUI() {
+    const shareUrlInput = document.getElementById('shareUrlInput');
+    const copyBtn = document.getElementById('copyShareUrlBtn');
+    
+    const shareUrl = `${window.location.origin}${window.location.pathname}#${roomId}`;
+    shareUrlInput.value = shareUrl;
+    copyBtn.disabled = false;
+}
+
+function updateStatusUI(statusClass, text) {
+    const dot = document.getElementById('statusDot');
+    const txt = document.getElementById('statusText');
+    if (!dot || !txt) return;
+
+    dot.className = `status-dot ${statusClass}`;
+    txt.textContent = text;
+}
+
+function updatePeerCountUI() {
+    const label = document.getElementById('peerCountLabel');
+    if (!label) return;
+
+    const count = connections.length;
+    if (count > 0) {
+        label.style.display = 'inline';
+        label.textContent = `(接続人数: ${count + 1}人)`;
+    } else {
+        label.style.display = 'none';
+    }
 }
