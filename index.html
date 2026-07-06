@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Celestial Glockenspiel - 星空の鉄琴</title>
+    <meta name="description" content="ブラウザで演奏できる美しい星空テーマの鉄琴アプリケーション。リアルな音響合成、録音機能、練習モードを搭載。">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="stars-background" id="starsBackground"></div>
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+
+    <div class="app-container">
+        <header class="app-header">
+            <div class="logo-area">
+                <span class="star-icon">✦</span>
+                <h1>Celestial Glockenspiel <span class="subtitle">星空の鉄琴</span></h1>
+            </div>
+            
+            <div class="header-controls">
+                <!-- マレット選択 -->
+                <div class="control-group">
+                    <label for="malletSelect">マレット (バチ)</label>
+                    <select id="malletSelect" class="glass-input">
+                        <option value="wood" selected>木製 (Medium Wood)</option>
+                        <option value="brass">真鍮製 (Hard Brass)</option>
+                        <option value="rubber">ゴム製 (Soft Rubber)</option>
+                    </select>
+                </div>
+                
+                <!-- 音量 -->
+                <div class="control-group slider-group">
+                    <div class="label-val">
+                        <label for="volumeSlider">マスター音量</label>
+                        <span id="volumeValue">80%</span>
+                    </div>
+                    <input type="range" id="volumeSlider" min="0" max="100" value="80" class="glass-slider">
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- エフェクト設定パネル（左側） -->
+            <section class="side-panel glass-panel left-panel">
+                <h2>エフェクト設定</h2>
+                
+                <div class="control-item">
+                    <div class="label-val">
+                        <label for="reverbSlider">リバーブ (宇宙の残響)</label>
+                        <span id="reverbValue">40%</span>
+                    </div>
+                    <input type="range" id="reverbSlider" min="0" max="100" value="40" class="glass-slider">
+                </div>
+
+                <div class="control-item">
+                    <div class="label-val">
+                        <label for="delayTimeSlider">ディレイ時間 (やまびこ)</label>
+                        <span id="delayTimeValue">0.3s</span>
+                    </div>
+                    <input type="range" id="delayTimeSlider" min="0" max="100" value="30" class="glass-slider">
+                </div>
+
+                <div class="control-item">
+                    <div class="label-val">
+                        <label for="delayFeedbackSlider">ディレイフィードバック</label>
+                        <span id="delayFeedbackValue">20%</span>
+                    </div>
+                    <input type="range" id="delayFeedbackSlider" min="0" max="80" value="20" class="glass-slider">
+                </div>
+
+                <!-- メトロノーム設定 -->
+                <div class="panel-section-divider"></div>
+                
+                <div class="metronome-section">
+                    <h2>メトロノーム</h2>
+                    
+                    <div class="control-item">
+                        <div class="label-val">
+                            <label for="bpmSlider">テンポ (BPM)</label>
+                            <span id="bpmValue">120</span>
+                        </div>
+                        <div class="bpm-slider-row">
+                            <input type="range" id="bpmSlider" min="40" max="240" value="120" class="glass-slider">
+                            <input type="number" id="bpmInput" min="40" max="240" value="120" class="glass-input bpm-num-input">
+                        </div>
+                    </div>
+
+                    <div class="control-row-flex">
+                        <div class="control-item flex-2">
+                            <label for="beatSelect">拍子</label>
+                            <select id="beatSelect" class="glass-input">
+                                <option value="4" selected>4/4 拍子</option>
+                                <option value="3">3/4 拍子</option>
+                                <option value="2">2/4 拍子</option>
+                                <option value="6">6/8 拍子</option>
+                            </select>
+                        </div>
+                        
+                        <div class="led-container">
+                            <span class="led-label">LED</span>
+                            <div id="metronomeLed" class="metronome-led"></div>
+                        </div>
+                    </div>
+
+                    <button id="metronomeToggleBtn" class="btn btn-secondary metronome-btn">
+                        <span class="btn-icon">▶</span>スタート
+                    </button>
+                </div>
+
+                <div class="keyboard-toggle-area">
+                    <label class="switch-container">
+                        <input type="checkbox" id="toggleKeyboardLabels" checked>
+                        <span class="switch-slider"></span>
+                        <span class="switch-label">キーボード案内を表示</span>
+                    </label>
+                </div>
+            </section>
+
+            <!-- 中央：鉄琴本体 ＆ 落下型ビジュアル -->
+            <section class="instrument-container">
+                <!-- 落下ノート用キャンバス -->
+                <div class="falling-notes-container">
+                    <canvas id="fallingNotesCanvas"></canvas>
+                </div>
+
+                <!-- 鉄琴音板エリア -->
+                <div class="glockenspiel-frame">
+                    <!-- フレームのウッド調のサイドバー（装飾用） -->
+                    <div class="frame-bar frame-left"></div>
+                    <div class="frame-bar frame-right"></div>
+                    
+                    <!-- 音板群 -->
+                    <div class="keys-container" id="keysContainer">
+                        <!-- JavaScriptで動的生成、または静的に定義。
+                             レスポンシブな配置や音板数を制御するため、HTMLに明示的に定義する。
+                             ここでは1.5オクターブ（C5〜G6の12の全音、8の半音、計20音）を定義します。
+                             これにより、一般的な曲の演奏に十分な音域を確保しつつ、画面幅にすっきりと収めます。 -->
+                        
+                        <!-- 全音（白鍵相当） -->
+                        <div class="natural-keys">
+                            <div class="key natural" data-note="C5" data-freq="523.25" data-trigger="A">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">C5</div>
+                                <div class="key-hint">A</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                            <div class="key natural" data-note="D5" data-freq="587.33" data-trigger="S">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">D5</div>
+                                <div class="key-hint">S</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                            <div class="key natural" data-note="E5" data-freq="659.25" data-trigger="D">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">E5</div>
+                                <div class="key-hint">D</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                            <div class="key natural" data-note="F5" data-freq="698.46" data-trigger="F">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">F5</div>
+                                <div class="key-hint">F</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                            <div class="key natural" data-note="G5" data-freq="783.99" data-trigger="G">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">G5</div>
+                                <div class="key-hint">G</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                            <div class="key natural" data-note="A5" data-freq="880.00" data-trigger="H">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">A5</div>
+                                <div class="key-hint">H</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                            <div class="key natural" data-note="B5" data-freq="987.77" data-trigger="J">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">B5</div>
+                                <div class="key-hint">J</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                            <div class="key natural" data-note="C6" data-freq="1046.50" data-trigger="K">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">C6</div>
+                                <div class="key-hint">K</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                            <div class="key natural" data-note="D6" data-freq="1174.66" data-trigger="L">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">D6</div>
+                                <div class="key-hint">L</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                            <div class="key natural" data-note="E6" data-freq="1318.51" data-trigger=";">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">E6</div>
+                                <div class="key-hint">;</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                            <div class="key natural" data-note="F6" data-freq="1396.91" data-trigger="'">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">F6</div>
+                                <div class="key-hint">'</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                            <div class="key natural" data-note="G6" data-freq="1567.98" data-trigger="]">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">G6</div>
+                                <div class="key-hint">]</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                        </div>
+
+                        <!-- 半音（黒鍵相当、絶対配置で全音の上に重ねる） -->
+                        <div class="accidental-keys">
+                            <!-- C#5 (C5とD5の間) -->
+                            <div class="key accidental" data-note="C#5" data-freq="554.37" data-trigger="W" style="left: 5.2%;">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">C#5</div>
+                                <div class="key-hint">W</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                            <!-- D#5 (D5とE5の間) -->
+                            <div class="key accidental" data-note="D#5" data-freq="622.25" data-trigger="E" style="left: 13.5%;">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">D#5</div>
+                                <div class="key-hint">E</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                            <!-- F#5 (F5とG5の間) -->
+                            <div class="key accidental" data-note="F#5" data-freq="739.99" data-trigger="T" style="left: 30.2%;">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">F#5</div>
+                                <div class="key-hint">T</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                            <!-- G#5 (G5とA5の間) -->
+                            <div class="key accidental" data-note="G#5" data-freq="830.61" data-trigger="Y" style="left: 38.5%;">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">G#5</div>
+                                <div class="key-hint">Y</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                            <!-- A#5 (A5とB5の間) -->
+                            <div class="key accidental" data-note="A#5" data-freq="932.33" data-trigger="U" style="left: 46.8%;">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">A#5</div>
+                                <div class="key-hint">U</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                            <!-- C#6 (C6とD6の間) -->
+                            <div class="key accidental" data-note="C#6" data-freq="1109.73" data-trigger="O" style="left: 63.5%;">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">C#6</div>
+                                <div class="key-hint">O</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                            <!-- D#6 (D6とE6の間) -->
+                            <div class="key accidental" data-note="D#6" data-freq="1244.51" data-trigger="P" style="left: 71.8%;">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">D#6</div>
+                                <div class="key-hint">P</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                            <!-- F#6 (F6とG6の間) -->
+                            <div class="key accidental" data-note="F#6" data-freq="1479.98" data-trigger="[" style="left: 88.5%;">
+                                <div class="screw screw-top"></div>
+                                <div class="note-name">F#6</div>
+                                <div class="key-hint">[</div>
+                                <div class="screw screw-bottom"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 打鍵時の光や星くずを描画するエフェクトキャンバス -->
+                <canvas id="effectsCanvas" class="effects-canvas"></canvas>
+            </section>
+
+            <!-- 練習 ＆ 録音パネル（右側） -->
+            <section class="side-panel glass-panel right-panel">
+                <!-- プレイアロングモード -->
+                <div class="panel-section">
+                    <h2>演奏練習 (レッスン)</h2>
+                    <div class="control-item">
+                        <label for="songSelect">練習曲の選択</label>
+                        <select id="songSelect" class="glass-input">
+                            <option value="none">-- 曲を選択してください --</option>
+                            <option value="twinkle">きらきら星 (Twinkle Star)</option>
+                            <option value="sakura">さくらさくら (Sakura Sakura)</option>
+                            <option value="ode">歓喜の歌 (Ode to Joy)</option>
+                            <option value="furusato">ふるさと (Furusato)</option>
+                        </select>
+                    </div>
+                    <div class="btn-group">
+                        <button id="startLessonBtn" class="btn btn-primary" disabled>
+                            <span class="btn-icon">▶</span>練習スタート
+                        </button>
+                        <button id="stopLessonBtn" class="btn btn-secondary" disabled>
+                            <span class="btn-icon">■</span>停止
+                        </button>
+                    </div>
+                    <div class="lesson-status" id="lessonStatus">曲を選択して「練習スタート」を押してください。</div>
+                </div>
+
+                <!-- 録音スタジオ -->
+                <div class="panel-section">
+                    <h2>録音スタジオ</h2>
+                    <div class="btn-group">
+                        <button id="recordBtn" class="btn btn-danger">
+                            <span class="record-dot"></span>録音
+                        </button>
+                        <button id="playRecordBtn" class="btn btn-success" disabled>
+                            <span class="btn-icon">▶</span>再生
+                        </button>
+                        <button id="clearRecordBtn" class="btn btn-secondary" disabled>
+                            クリア
+                        </button>
+                    </div>
+                    <div class="record-status" id="recordStatus">録音していません。</div>
+                </div>
+            </section>
+        </main>
+
+        <!-- フッターエリア：オシロスコープビジュアライザー -->
+        <footer class="app-footer glass-panel">
+            <div class="visualizer-container">
+                <canvas id="visualizerCanvas"></canvas>
+                <div class="visualizer-overlay">AUDIO VISUALIZER</div>
+            </div>
+            <div class="footer-info">
+                <p>操作方法：マウスでクリック・スライド演奏 ｜ パソコンのキーボード（A〜]、W〜[） ｜ タッチパネル対応</p>
+                <p class="copyright">&copy; 2026 Celestial Glockenspiel. All stars aligned.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- マウス追従用のカスタムマレット -->
+    <div id="customMallet" class="custom-mallet">
+        <div class="mallet-inner">
+            <div class="mallet-head"></div>
+            <div class="mallet-shaft"></div>
+        </div>
+    </div>
+
+    <!-- Web Audio API & Logic -->
+    <script src="app.js"></script>
+</body>
+</html>

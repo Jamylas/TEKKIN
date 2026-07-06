@@ -1,0 +1,1035 @@
+/* CSS Design System for Celestial Glockenspiel */
+
+:root {
+    --bg-dark: #070714;
+    --panel-bg: rgba(13, 13, 33, 0.45);
+    --panel-border: rgba(255, 255, 255, 0.08);
+    --glass-blur: blur(16px);
+    
+    /* Neon Glow Colors */
+    --glow-cyan: #00f0ff;
+    --glow-magenta: #ff007f;
+    --glow-gold: #ffb700;
+    --glow-green: #39ff14;
+    
+    /* Font styles */
+    --font-primary: 'Outfit', sans-serif;
+    --font-heading: 'Montserrat', sans-serif;
+    
+    --text-color: #f0f0ff;
+    --text-muted: #8fa0c0;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-color);
+    font-family: var(--font-primary);
+    overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+/* 宇宙・星空バックグラウンド */
+.stars-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    background: radial-gradient(circle at 50% 50%, #121235 0%, #060613 100%);
+    overflow: hidden;
+}
+
+.star {
+    position: absolute;
+    background-color: #fff;
+    border-radius: 50%;
+    animation: twinkle var(--duration, 3s) infinite ease-in-out;
+    opacity: var(--opacity, 0.5);
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); text-shadow: 0 0 8px #fff; }
+}
+
+/* 背景を漂う発光オーブ */
+.glow-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    z-index: -1;
+    opacity: 0.3;
+    pointer-events: none;
+    animation: floatOrb 25s infinite alternate ease-in-out;
+}
+
+.orb-1 {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(0, 240, 255, 0.4) 0%, transparent 70%);
+    top: -100px;
+    left: -100px;
+}
+
+.orb-2 {
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255, 0, 127, 0.35) 0%, transparent 70%);
+    bottom: -150px;
+    right: -100px;
+    animation-delay: -5s;
+}
+
+@keyframes floatOrb {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(100px, 80px) scale(1.2); }
+}
+
+/* アプリ全体のコンテナ */
+.app-container {
+    width: 95%;
+    max-width: 1400px;
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+/* ヘッダー */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    backdrop-filter: var(--glass-blur);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.star-icon {
+    font-size: 24px;
+    color: var(--glow-cyan);
+    text-shadow: 0 0 10px var(--glow-cyan);
+    animation: spinStar 8s linear infinite;
+}
+
+@keyframes spinStar {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.logo-area h1 {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: 1.5px;
+    background: linear-gradient(135deg, #ffffff, #8fa0c0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex;
+    flex-direction: column;
+}
+
+.logo-area .subtitle {
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 4px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    -webkit-text-fill-color: var(--text-muted); /* Reset background clip */
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+/* コントロール入力の共通スタイル */
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.control-group label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.label-val {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* ガラスモーフィズムインプット・スライダー */
+.glass-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--text-color);
+    padding: 8px 12px;
+    font-family: var(--font-primary);
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.glass-input:hover, .glass-input:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+
+.glass-input option {
+    background: var(--bg-dark);
+    color: var(--text-color);
+}
+
+.glass-slider {
+    -webkit-appearance: none;
+    width: 150px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.glass-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--text-color);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.glass-slider::-webkit-slider-thumb:hover {
+    background: var(--glow-cyan);
+    box-shadow: 0 0 12px var(--glow-cyan);
+    transform: scale(1.2);
+}
+
+/* メインセクション */
+.main-content {
+    display: grid;
+    grid-template-columns: 280px 1fr 280px;
+    gap: 20px;
+}
+
+/* ガラスパネル */
+.glass-panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    backdrop-filter: var(--glass-blur);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    padding: 24px;
+}
+
+.side-panel h2 {
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 8px;
+    color: var(--text-color);
+}
+
+/* エフェクト調整項目 */
+.side-panel .control-item {
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.side-panel .glass-slider {
+    width: 100%;
+}
+
+/* 切り替えスイッチ */
+.keyboard-toggle-area {
+    margin-top: 24px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.switch-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    gap: 12px;
+}
+
+.switch-container input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch-slider {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 22px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 11px;
+    transition: 0.3s;
+}
+
+.switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+input:checked + .switch-slider {
+    background-color: var(--glow-cyan);
+    box-shadow: 0 0 10px var(--glow-cyan);
+}
+
+input:checked + .switch-slider:before {
+    transform: translateX(22px);
+}
+
+.switch-label {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* 中央：楽器コンテナ */
+.instrument-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 10px;
+    min-height: 500px;
+}
+
+/* 落下ノートエリア */
+.falling-notes-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 380px); /* 鍵盤より上の領域 */
+    pointer-events: none;
+    z-index: 2;
+}
+
+#fallingNotesCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* 鉄琴フレーム */
+.glockenspiel-frame {
+    position: relative;
+    width: 100%;
+    max-width: 820px;
+    padding: 20px 40px;
+    background: linear-gradient(180deg, rgba(20, 20, 45, 0.4) 0%, rgba(10, 10, 25, 0.6) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6), 0 20px 40px rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    margin-top: auto;
+    z-index: 3;
+}
+
+/* 木製のサイドバー装飾 */
+.frame-bar {
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    width: 15px;
+    background: linear-gradient(90deg, #3d2314 0%, #5c341e 50%, #29170d 100%);
+    border-radius: 5px;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+}
+
+.frame-left {
+    left: 15px;
+    transform: rotate(-1deg);
+}
+
+.frame-right {
+    right: 15px;
+    transform: rotate(1deg);
+}
+
+/* 音板コンテナ */
+.keys-container {
+    position: relative;
+    width: 100%;
+    height: 380px; /* 音板の最大高さ */
+    margin: 0 auto;
+}
+
+/* 全音・半音のラッパー */
+.natural-keys {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: space-between;
+    align-items: flex-start; /* 上揃えにして、徐々に短くなる */
+}
+
+.accidental-keys {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* 下の鍵盤に触れるように */
+}
+
+/* 音板（キー）の基本スタイル */
+.key {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 25px 0;
+    border-radius: 4px 4px 8px 8px;
+    cursor: pointer;
+    box-shadow: 
+        inset 1px 1px 3px rgba(255,255,255,0.7),
+        0 4px 10px rgba(0,0,0,0.4);
+    transition: transform 0.05s ease, box-shadow 0.05s ease;
+    transform-origin: top center;
+}
+
+/* 全音（ナチュラル）音板 */
+.key.natural {
+    width: calc(8.33% - 4px); /* 12音 */
+    background: linear-gradient(to right, #b5b5c3 0%, #f5f5f7 30%, #e1e1e6 70%, #9e9eb0 100%);
+    border: 1px solid #7d7d8f;
+    z-index: 5;
+    pointer-events: auto;
+}
+
+/* 半音（アクシデンタル）音板 */
+.key.accidental {
+    position: absolute;
+    width: calc(8.33% - 10px); /* 全音より少し細く */
+    height: 250px; /* JavaScriptで個別に高さ設定するが、ベースは短め */
+    background: linear-gradient(to right, #453229 0%, #7d5e4f 30%, #5e463a 70%, #2d1f19 100%);
+    border: 1px solid #2d1f19;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+/* マウスホバーと打鍵時のアニメーション */
+.key:hover {
+    filter: brightness(1.05);
+}
+
+.key.active {
+    transform: scaleY(0.96) scaleX(0.98);
+    box-shadow: 
+        inset 0px 0px 8px rgba(0,0,0,0.4),
+        0 1px 3px rgba(0,0,0,0.6);
+}
+
+/* 全音発光時 */
+.key.natural.active {
+    background: linear-gradient(to bottom, #d2f8ff 0%, #b8f2ff 50%, #8ae2f2 100%);
+    border-color: var(--glow-cyan);
+    box-shadow: 0 0 25px var(--glow-cyan);
+}
+
+/* 半音発光時 */
+.key.accidental.active {
+    background: linear-gradient(to bottom, #ffd8e6 0%, #ffa3cc 50%, #f272a8 100%);
+    border-color: var(--glow-magenta);
+    box-shadow: 0 0 25px var(--glow-magenta);
+}
+
+/* ガイド表示時の点滅（練習モード用） */
+.key.guided-hint {
+    animation: pulseHint 1s infinite alternate ease-in-out;
+}
+
+@keyframes pulseHint {
+    0% {
+        box-shadow: 0 0 8px rgba(0, 240, 255, 0.4), inset 0 0 4px rgba(0, 240, 255, 0.2);
+        border-color: rgba(0, 240, 255, 0.5);
+    }
+    100% {
+        box-shadow: 0 0 22px rgba(0, 240, 255, 0.95), inset 0 0 12px rgba(0, 240, 255, 0.6);
+        border-color: var(--glow-cyan);
+    }
+}
+
+.key.accidental.guided-hint {
+    animation: pulseHintAccidental 1s infinite alternate ease-in-out;
+}
+
+@keyframes pulseHintAccidental {
+    0% {
+        box-shadow: 0 0 8px rgba(255, 0, 127, 0.4), inset 0 0 4px rgba(255, 0, 127, 0.2);
+        border-color: rgba(255, 0, 127, 0.5);
+    }
+    100% {
+        box-shadow: 0 0 22px rgba(255, 0, 127, 0.95), inset 0 0 12px rgba(255, 0, 127, 0.6);
+        border-color: var(--glow-magenta);
+    }
+}
+
+/* 留め具のゴム・ネジ（音板の振動ノード位置） */
+.screw {
+    width: 8px;
+    height: 8px;
+    background: radial-gradient(circle, #e0e0e0 0%, #505050 80%, #1a1a1a 100%);
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.screw-top {
+    top: 22.4%; /* 振動の節(ノード)の位置 */
+}
+
+.screw-bottom {
+    bottom: 22.4%;
+}
+
+/* 音板の音名とキー案内表示 */
+.note-name {
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 50%;
+    transform: rotate(-90deg); /* 縦置き文字 */
+    color: #444b5a;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.key.accidental .note-name {
+    color: #ffdcb5;
+}
+
+.key-hint {
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 5px;
+    text-transform: uppercase;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    margin-bottom: 25%;
+}
+
+.hide-labels .note-name,
+.hide-labels .key-hint {
+    opacity: 0;
+}
+
+/* 各キーの個別の高さ調整（音階が上がるにつれて短く）
+   全音 12枚の高さ設定 */
+.natural:nth-child(1) { height: 380px; }
+.natural:nth-child(2) { height: 362px; }
+.natural:nth-child(3) { height: 344px; }
+.natural:nth-child(4) { height: 326px; }
+.natural:nth-child(5) { height: 308px; }
+.natural:nth-child(6) { height: 290px; }
+.natural:nth-child(7) { height: 272px; }
+.natural:nth-child(8) { height: 254px; }
+.natural:nth-child(9) { height: 236px; }
+.natural:nth-child(10) { height: 218px; }
+.natural:nth-child(11) { height: 200px; }
+.natural:nth-child(12) { height: 182px; }
+
+/* 半音 8枚の高さ設定 */
+.accidental:nth-child(1) { height: 290px; } /* C#5 */
+.accidental:nth-child(2) { height: 275px; } /* D#5 */
+.accidental:nth-child(3) { height: 245px; } /* F#5 */
+.accidental:nth-child(4) { height: 230px; } /* G#5 */
+.accidental:nth-child(5) { height: 215px; } /* A#5 */
+.accidental:nth-child(6) { height: 185px; } /* C#6 */
+.accidental:nth-child(7) { height: 170px; } /* D#6 */
+.accidental:nth-child(8) { height: 140px; } /* F#6 */
+
+/* 打鍵時エフェクト用 Canvas Overlay */
+.effects-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 6;
+}
+
+/* パネルセクション */
+.panel-section {
+    margin-bottom: 24px;
+}
+
+.panel-section:last-child {
+    margin-bottom: 0;
+}
+
+.panel-section h2 {
+    font-size: 15px;
+    margin-bottom: 15px;
+}
+
+/* ボタングループ */
+.btn-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn {
+    flex: 1;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.btn-icon {
+    font-size: 10px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+    box-shadow: 0 4px 15px rgba(0, 114, 255, 0.4);
+}
+
+.btn-primary:hover:not(:disabled) {
+    box-shadow: 0 6px 20px rgba(0, 114, 255, 0.6);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
+    box-shadow: 0 4px 15px rgba(255, 8, 68, 0.4);
+}
+
+.btn-danger:hover:not(:disabled) {
+    box-shadow: 0 6px 20px rgba(255, 8, 68, 0.6);
+    transform: translateY(-1px);
+}
+
+/* 録音動作中の赤丸点滅 */
+.record-dot {
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.recording .record-dot {
+    background-color: red;
+    animation: pulseRecord 1s infinite alternate;
+}
+
+@keyframes pulseRecord {
+    0% { transform: scale(1); box-shadow: 0 0 0 rgba(255, 0, 0, 0.8); }
+    100% { transform: scale(1.3); box-shadow: 0 0 10px rgba(255, 0, 0, 0.8); }
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #f000ff 0%, #4389a2 100%);
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    box-shadow: 0 4px 15px rgba(56, 239, 125, 0.4);
+}
+
+.btn-success:hover:not(:disabled) {
+    box-shadow: 0 6px 20px rgba(56, 239, 125, 0.6);
+    transform: translateY(-1px);
+}
+
+.btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+/* レッスン・録音のステータス表示 */
+.lesson-status, .record-status {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border-left: 3px solid rgba(255, 255, 255, 0.15);
+}
+
+.lesson-status.active {
+    border-left-color: var(--glow-cyan);
+    color: var(--glow-cyan);
+}
+
+.record-status.active {
+    border-left-color: var(--glow-magenta);
+    color: #ff80b3;
+}
+
+/* フッター */
+.app-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    padding: 15px 30px;
+}
+
+/* ビジュアライザー */
+.visualizer-container {
+    position: relative;
+    width: 100%;
+    height: 80px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+#visualizerCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.visualizer-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 9px;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    letter-spacing: 6px;
+    color: rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+}
+
+.footer-info {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.copyright {
+    font-size: 11px;
+    opacity: 0.6;
+}
+
+/* レスポンシブ調整 */
+@media (max-width: 1200px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .side-panel {
+        grid-row: 2;
+    }
+    
+    .left-panel {
+        grid-column: 1;
+    }
+    
+    .right-panel {
+        grid-column: 1;
+        grid-row: 3;
+    }
+    
+    .instrument-container {
+        grid-column: 1;
+        grid-row: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .header-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .glass-slider {
+        width: 100%;
+    }
+    
+    .footer-info {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .glockenspiel-frame {
+        padding: 15px 25px;
+    }
+    
+    .frame-bar {
+        display: none;
+    }
+    
+    .note-name {
+        font-size: 10px;
+    }
+    
+    .key-hint {
+        display: none; /* モバイルではキー案内は非表示 */
+    }
+}
+
+/* --- カスタムマレット (マウス追従) --- */
+
+/* 楽器エリア内では標準カーソルを非表示に */
+.instrument-container, 
+.instrument-container * {
+    cursor: none !important;
+}
+
+.custom-mallet {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none; /* 下の要素のクリックを妨げない */
+    z-index: 10000;       /* 最前面に表示 */
+    display: none;
+    transform: translate3d(0, 0, 0);
+}
+
+.mallet-inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0px 0px; /* 打鍵アニメーションの回転ピボット（ヘッドの中心） */
+    transform: rotate(-30deg);
+    transition: transform 0.08s ease-out;
+}
+
+/* 叩いたときの叩き込みアニメーション */
+.custom-mallet.striking .mallet-inner {
+    transform: rotate(5deg);
+}
+
+/* マレットヘッド（叩く先端の丸玉） */
+.mallet-head {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    top: -12px;
+    left: -12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    transition: background 0.3s ease, border 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* 木製マレット */
+.mallet-head.wood {
+    background: radial-gradient(circle at 35% 35%, #f7d5b8 0%, #bd8c61 65%, #7a5030 100%);
+    border: 1px solid #5a3b23;
+}
+
+/* 真鍮製マレット */
+.mallet-head.brass {
+    background: radial-gradient(circle at 35% 35%, #fff5bd 0%, #d4af37 60%, #947519 100%);
+    border: 1px solid #755b11;
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.6);
+}
+
+/* ゴム製マレット */
+.mallet-head.rubber {
+    background: radial-gradient(circle at 35% 35%, #7a7a7a 0%, #303030 70%, #1c1c1c 100%);
+    border: 1px solid #111;
+}
+
+/* マレットの柄（シャフト） */
+.mallet-shaft {
+    position: absolute;
+    width: 6px;
+    height: 120px;
+    background: linear-gradient(to right, #7a5030, #ab7d58, #4d3017);
+    border-radius: 3px;
+    top: 0;
+    left: -3px;
+    transform-origin: top center;
+    transform: rotate(40deg); /* 柄を斜め下（右下）に流す */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.35);
+}
+
+/* --- メトロノーム用スタイル --- */
+
+.panel-section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+    margin: 20px 0;
+}
+
+.metronome-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.bpm-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bpm-slider-row .glass-slider {
+    flex: 1;
+}
+
+.bpm-num-input {
+    width: 60px;
+    padding: 5px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    -moz-appearance: textfield;
+}
+
+.bpm-num-input::-webkit-outer-spin-button,
+.bpm-num-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.control-row-flex {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+}
+
+.flex-2 {
+    flex: 2;
+}
+
+.led-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.led-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+}
+
+.metronome-led {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+    transition: background-color 0.05s ease, box-shadow 0.05s ease;
+}
+
+/* LED点滅状態 */
+.metronome-led.flash-accent {
+    background-color: var(--glow-gold);
+    box-shadow: 0 0 15px var(--glow-gold), inset 0 1px 2px rgba(255, 255, 255, 0.6);
+}
+
+.metronome-led.flash-normal {
+    background-color: var(--glow-cyan);
+    box-shadow: 0 0 15px var(--glow-cyan), inset 0 1px 2px rgba(255, 255, 255, 0.6);
+}
+
+.metronome-btn {
+    width: 100%;
+}
+
+
