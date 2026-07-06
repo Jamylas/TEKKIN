@@ -176,18 +176,34 @@ function resizeCanvases() {
 // Background Twinkling Stars
 function initStars() {
     const bg = document.getElementById('starsBackground');
-    const starCount = 60;
-    for (let i = 0; i < starCount; i++) {
-        const star = document.createElement('div');
-        star.className = 'star';
-        const size = Math.random() * 2.5 + 0.5;
-        star.style.width = `${size}px`;
-        star.style.height = `${size}px`;
-        star.style.left = `${Math.random() * 100}%`;
-        star.style.top = `${Math.random() * 100}%`;
-        star.style.setProperty('--duration', `${Math.random() * 3 + 2}s`);
-        star.style.setProperty('--opacity', Math.random() * 0.7 + 0.3);
-        bg.appendChild(star);
+    if (!bg) return;
+    
+    // Generate scrolling digital particles and notes
+    const items = ['♪', '♫', '♬', '♩', '✦', '•', '▫'];
+    const itemCount = 50;
+    
+    for (let i = 0; i < itemCount; i++) {
+        const el = document.createElement('div');
+        const isNote = Math.random() > 0.4;
+        
+        if (isNote) {
+            el.className = 'cyber-note';
+            el.textContent = items[Math.floor(Math.random() * 4)];
+            el.style.fontSize = `${Math.random() * 12 + 10}px`;
+        } else {
+            el.className = 'cyber-spark';
+            el.textContent = items[Math.floor(Math.random() * 3) + 4];
+            el.style.fontSize = `${Math.random() * 6 + 4}px`;
+        }
+        
+        el.style.left = `${Math.random() * 100}%`;
+        el.style.top = `${Math.random() * 100}%`;
+        
+        el.style.setProperty('--duration', `${Math.random() * 15 + 15}s`);
+        el.style.setProperty('--opacity', Math.random() * 0.4 + 0.15);
+        el.style.setProperty('--color', Math.random() > 0.5 ? '#ff6a00' : '#00f0ff');
+        
+        bg.appendChild(el);
     }
 }
 
@@ -518,22 +534,41 @@ function toggleMetronome() {
 
 // Spawn spark particles upon striking a note
 function spawnParticles(x, y, noteColor) {
-    const pCount = Math.floor(Math.random() * 12) + 8;
+    const pCount = Math.floor(Math.random() * 12) + 12;
+    const sparkColor = Math.random() > 0.5 ? '#00f0ff' : '#ff6a00';
+    
     for (let i = 0; i < pCount; i++) {
+        const isNote = Math.random() > 0.7; // 30% chance of note particle
         const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 3 + 1;
-        particles.push({
-            x: x,
-            y: y,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed - (Math.random() * 2 + 1), // floating upward trend
-            size: Math.random() * 6 + 3,
-            color: noteColor,
-            alpha: 1.0,
-            decay: Math.random() * 0.02 + 0.015,
-            rotation: Math.random() * Math.PI,
-            rotSpeed: (Math.random() - 0.5) * 0.1
-        });
+        const speed = Math.random() * 4 + 2;
+        
+        if (isNote) {
+            const symbols = ['♪', '♫', '♬', '♩'];
+            particles.push({
+                type: 'note',
+                symbol: symbols[Math.floor(Math.random() * symbols.length)],
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 1.5,
+                vy: -(Math.random() * 2 + 1),
+                size: Math.random() * 6 + 12,
+                color: noteColor,
+                alpha: 1.0,
+                decay: Math.random() * 0.015 + 0.01
+            });
+        } else {
+            particles.push({
+                type: 'spark',
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed - 1.5,
+                size: Math.random() * 3 + 1.5,
+                color: sparkColor,
+                alpha: 1.0,
+                decay: Math.random() * 0.03 + 0.02
+            });
+        }
     }
 }
 
@@ -576,9 +611,10 @@ function animate() {
         const p = particles[i];
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.04; // gravity
+        if (p.type === 'spark') {
+            p.vy += 0.08; // gravity for sparks
+        }
         p.alpha -= p.decay;
-        p.rotation += p.rotSpeed;
         
         if (p.alpha <= 0) {
             particles.splice(i, 1);
@@ -587,20 +623,26 @@ function animate() {
 
         effectsCtx.save();
         effectsCtx.translate(p.x, p.y);
-        effectsCtx.rotate(p.rotation);
         effectsCtx.globalAlpha = p.alpha;
         effectsCtx.fillStyle = p.color;
-        effectsCtx.shadowBlur = 10;
+        effectsCtx.shadowBlur = 8;
         effectsCtx.shadowColor = p.color;
 
-        // Draw star shapes
-        effectsCtx.beginPath();
-        for (let j = 0; j < 5; j++) {
-            effectsCtx.lineTo(Math.cos((18 + j * 72) * Math.PI / 180) * p.size, Math.sin((18 + j * 72) * Math.PI / 180) * p.size);
-            effectsCtx.lineTo(Math.cos((54 + j * 72) * Math.PI / 180) * (p.size/2), Math.sin((54 + j * 72) * Math.PI / 180) * (p.size/2));
+        if (p.type === 'note') {
+            effectsCtx.font = `bold ${p.size}px 'Outfit', sans-serif`;
+            effectsCtx.textAlign = 'center';
+            effectsCtx.textBaseline = 'middle';
+            effectsCtx.fillText(p.symbol, 0, 0);
+        } else {
+            // Draw diamond/spark shape
+            effectsCtx.beginPath();
+            effectsCtx.moveTo(0, -p.size * 2);
+            effectsCtx.lineTo(p.size, 0);
+            effectsCtx.lineTo(0, p.size * 2);
+            effectsCtx.lineTo(-p.size, 0);
+            effectsCtx.closePath();
+            effectsCtx.fill();
         }
-        effectsCtx.closePath();
-        effectsCtx.fill();
         effectsCtx.restore();
     }
 

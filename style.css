@@ -39,7 +39,7 @@ body {
     position: relative;
 }
 
-/* 宇宙・星空バックグラウンド */
+/* サイバーミュージック・バックグラウンド（五線譜風グリッド） */
 .stars-background {
     position: absolute;
     top: 0;
@@ -47,21 +47,63 @@ body {
     width: 100%;
     height: 100%;
     z-index: -2;
-    background: radial-gradient(circle at 50% 50%, #121235 0%, #060613 100%);
+    background: 
+        linear-gradient(rgba(8, 8, 20, 0.95), rgba(4, 4, 10, 0.98)),
+        /* Horizontal staff lines (五線譜風ネオンライン) */
+        repeating-linear-gradient(
+            to bottom,
+            transparent,
+            transparent 80px,
+            rgba(0, 240, 255, 0.04) 80px,
+            rgba(0, 240, 255, 0.04) 81px,
+            transparent 81px,
+            transparent 88px,
+            rgba(0, 240, 255, 0.04) 88px,
+            rgba(0, 240, 255, 0.04) 89px,
+            transparent 89px,
+            transparent 96px,
+            rgba(0, 240, 255, 0.04) 96px,
+            rgba(0, 240, 255, 0.04) 97px,
+            transparent 97px,
+            transparent 104px,
+            rgba(0, 240, 255, 0.04) 104px,
+            rgba(0, 240, 255, 0.04) 105px,
+            transparent 105px,
+            transparent 112px,
+            rgba(0, 240, 255, 0.04) 112px,
+            rgba(0, 240, 255, 0.04) 113px,
+            transparent 113px,
+            transparent 300px
+        );
+    background-size: 100% 400px;
     overflow: hidden;
 }
 
-.star {
+.cyber-note, .cyber-spark {
     position: absolute;
-    background-color: #fff;
-    border-radius: 50%;
-    animation: twinkle var(--duration, 3s) infinite ease-in-out;
-    opacity: var(--opacity, 0.5);
+    color: var(--color, var(--glow-cyan));
+    opacity: var(--opacity, 0.3);
+    font-family: 'Outfit', sans-serif;
+    pointer-events: none;
+    text-shadow: 0 0 10px var(--color, var(--glow-cyan));
+    animation: drift var(--duration, 20s) infinite linear;
 }
 
-@keyframes twinkle {
-    0%, 100% { opacity: 0.2; transform: scale(0.8); }
-    50% { opacity: 1; transform: scale(1.2); text-shadow: 0 0 8px #fff; }
+@keyframes drift {
+    0% {
+        transform: translateY(0) translateX(0) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: var(--opacity, 0.3);
+    }
+    90% {
+        opacity: var(--opacity, 0.3);
+    }
+    100% {
+        transform: translateY(-200px) translateX(50px) rotate(360deg);
+        opacity: 0;
+    }
 }
 
 /* 背景を漂う発光オーブ */
@@ -251,23 +293,32 @@ body {
 
 /* ガラスパネル */
 .glass-panel {
-    background: var(--panel-bg);
-    border: 1px solid var(--panel-border);
+    background: rgba(10, 10, 24, 0.7);
+    border: 1.5px solid rgba(0, 240, 255, 0.2);
     backdrop-filter: var(--glass-blur);
-    border-radius: 20px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    box-shadow: 
+        0 8px 32px 0 rgba(0, 0, 0, 0.5),
+        inset 0 0 15px rgba(0, 240, 255, 0.05);
     padding: 24px;
+    transition: border-color 0.3s ease;
+}
+.glass-panel:hover {
+    border-color: rgba(255, 106, 0, 0.3);
 }
 
 .side-panel h2 {
     font-family: var(--font-heading);
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 800;
     margin-bottom: 20px;
-    letter-spacing: 1px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--glow-gold);
     padding-bottom: 8px;
-    color: var(--text-color);
+    color: #fff;
+    text-shadow: 0 0 8px rgba(255, 183, 0, 0.4);
+    font-style: italic;
 }
 
 /* エフェクト調整項目 */
@@ -566,19 +617,21 @@ input:checked + .switch-slider:before {
 .btn {
     flex: 1;
     border: none;
-    border-radius: 8px;
+    border-radius: 4px;
     color: white;
     padding: 10px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    font-family: var(--font-primary);
+    font-size: 12px;
+    font-weight: 800;
+    font-family: var(--font-heading);
+    font-style: italic;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
     transition: all 0.2s ease;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    text-transform: uppercase;
 }
 
 .btn-icon {
@@ -586,34 +639,37 @@ input:checked + .switch-slider:before {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
-    box-shadow: 0 4px 15px rgba(0, 114, 255, 0.4);
+    background: linear-gradient(135deg, #00f0ff 0%, #0072ff 100%);
+    box-shadow: 0 4px 12px rgba(0, 240, 255, 0.3);
+    border: 1px solid rgba(0, 240, 255, 0.5);
 }
 
 .btn-primary:hover:not(:disabled) {
-    box-shadow: 0 6px 20px rgba(0, 114, 255, 0.6);
-    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0, 240, 255, 0.6);
+    transform: scale(1.03);
 }
 
 .btn-secondary {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     color: var(--text-muted);
 }
 
 .btn-secondary:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.15);
     color: #fff;
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 .btn-danger {
-    background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
-    box-shadow: 0 4px 15px rgba(255, 8, 68, 0.4);
+    background: linear-gradient(135deg, #ff6a00 0%, #ff0844 100%);
+    box-shadow: 0 4px 12px rgba(255, 106, 0, 0.3);
+    border: 1px solid rgba(255, 106, 0, 0.5);
 }
 
 .btn-danger:hover:not(:disabled) {
-    box-shadow: 0 6px 20px rgba(255, 8, 68, 0.6);
-    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(255, 106, 0, 0.6);
+    transform: scale(1.03);
 }
 
 /* 録音動作中の赤丸点滅 */
@@ -837,19 +893,21 @@ input:checked + .switch-slider:before {
 .mallet-head.wood {
     background: radial-gradient(circle at 35% 35%, #f7d5b8 0%, #bd8c61 65%, #7a5030 100%);
     border: 1px solid #5a3b23;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
 }
 
 /* 真鍮製マレット */
 .mallet-head.brass {
     background: radial-gradient(circle at 35% 35%, #fff5bd 0%, #d4af37 60%, #947519 100%);
     border: 1px solid #755b11;
-    box-shadow: 0 0 12px rgba(212, 175, 55, 0.6);
+    box-shadow: 0 0 20px rgba(255, 106, 0, 0.8);
 }
 
 /* ゴム製マレット */
 .mallet-head.rubber {
     background: radial-gradient(circle at 35% 35%, #7a7a7a 0%, #303030 70%, #1c1c1c 100%);
     border: 1px solid #111;
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.5);
 }
 
 /* マレットの柄（シャフト） */
@@ -925,31 +983,32 @@ input:checked + .switch-slider:before {
 }
 
 .led-label {
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--text-muted);
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--glow-gold);
     letter-spacing: 1px;
+    font-style: italic;
 }
 
 .metronome-led {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+    width: 16px;
+    height: 16px;
+    border-radius: 4px; /* Square LED */
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.7);
     transition: background-color 0.05s ease, box-shadow 0.05s ease;
 }
 
 /* LED点滅状態 */
 .metronome-led.flash-accent {
-    background-color: var(--glow-gold);
-    box-shadow: 0 0 15px var(--glow-gold), inset 0 1px 2px rgba(255, 255, 255, 0.6);
+    background-color: #ff3300;
+    box-shadow: 0 0 20px #ff3300, 0 0 40px #ff3300, inset 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .metronome-led.flash-normal {
-    background-color: var(--glow-cyan);
-    box-shadow: 0 0 15px var(--glow-cyan), inset 0 1px 2px rgba(255, 255, 255, 0.6);
+    background-color: #00f0ff;
+    box-shadow: 0 0 20px #00f0ff, 0 0 40px #00f0ff, inset 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .metronome-btn {
