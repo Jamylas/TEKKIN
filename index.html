@@ -124,10 +124,6 @@
 
             <!-- 中央：鉄琴本体 ＆ 落下型ビジュアル -->
             <section class="instrument-container">
-                <!-- 落下ノート用キャンバス -->
-                <div class="falling-notes-container">
-                    <canvas id="fallingNotesCanvas"></canvas>
-                </div>
 
                 <!-- 鉄琴音板エリア -->
                 <div class="glockenspiel-frame">
@@ -286,29 +282,6 @@
 
             <!-- 練習 ＆ 録音パネル（右側） -->
             <section class="side-panel glass-panel right-panel">
-                <!-- プレイアロングモード -->
-                <div class="panel-section">
-                    <h2>演奏練習 (レッスン)</h2>
-                    <div class="control-item">
-                        <label for="songSelect">練習曲の選択</label>
-                        <select id="songSelect" class="glass-input">
-                            <option value="none">-- 曲を選択してください --</option>
-                            <option value="twinkle">きらきら星 (Twinkle Star)</option>
-                            <option value="sakura">さくらさくら (Sakura Sakura)</option>
-                            <option value="ode">歓喜の歌 (Ode to Joy)</option>
-                            <option value="furusato">ふるさと (Furusato)</option>
-                        </select>
-                    </div>
-                    <div class="btn-group">
-                        <button id="startLessonBtn" class="btn btn-primary" disabled>
-                            <span class="btn-icon">▶</span>練習スタート
-                        </button>
-                        <button id="stopLessonBtn" class="btn btn-secondary" disabled>
-                            <span class="btn-icon">■</span>停止
-                        </button>
-                    </div>
-                    <div class="lesson-status" id="lessonStatus">曲を選択して「練習スタート」を押してください。</div>
-                                </div>
 
                 <!-- 録音スタジオ -->
                 <div class="panel-section">

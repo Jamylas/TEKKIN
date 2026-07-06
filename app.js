@@ -13,58 +13,6 @@ const KEY_MAP = {
     'o': 'C#6', 'p': 'D#6', '[': 'F#6'
 };
 
-// Song Data (notes and delays in seconds)
-const SONGS = {
-    twinkle: [
-        { note: 'C5', dur: 0.5 }, { note: 'C5', dur: 0.5 }, { note: 'G5', dur: 0.5 }, { note: 'G5', dur: 0.5 },
-        { note: 'A5', dur: 0.5 }, { note: 'A5', dur: 0.5 }, { note: 'G5', dur: 1.0 },
-        { note: 'F5', dur: 0.5 }, { note: 'F5', dur: 0.5 }, { note: 'E5', dur: 0.5 }, { note: 'E5', dur: 0.5 },
-        { note: 'D5', dur: 0.5 }, { note: 'D5', dur: 0.5 }, { note: 'C5', dur: 1.0 },
-        { note: 'G5', dur: 0.5 }, { note: 'G5', dur: 0.5 }, { note: 'F5', dur: 0.5 }, { note: 'F5', dur: 0.5 },
-        { note: 'E5', dur: 0.5 }, { note: 'E5', dur: 0.5 }, { note: 'D5', dur: 1.0 },
-        { note: 'G5', dur: 0.5 }, { note: 'G5', dur: 0.5 }, { note: 'F5', dur: 0.5 }, { note: 'F5', dur: 0.5 },
-        { note: 'E5', dur: 0.5 }, { note: 'E5', dur: 0.5 }, { note: 'D5', dur: 1.0 },
-        { note: 'C5', dur: 0.5 }, { note: 'C5', dur: 0.5 }, { note: 'G5', dur: 0.5 }, { note: 'G5', dur: 0.5 },
-        { note: 'A5', dur: 0.5 }, { note: 'A5', dur: 0.5 }, { note: 'G5', dur: 1.0 },
-        { note: 'F5', dur: 0.5 }, { note: 'F5', dur: 0.5 }, { note: 'E5', dur: 0.5 }, { note: 'E5', dur: 0.5 },
-        { note: 'D5', dur: 0.5 }, { note: 'D5', dur: 0.5 }, { note: 'C5', dur: 1.0 }
-    ],
-    sakura: [
-        { note: 'A5', dur: 0.5 }, { note: 'A5', dur: 0.5 }, { note: 'B5', dur: 1.0 },
-        { note: 'A5', dur: 0.5 }, { note: 'A5', dur: 0.5 }, { note: 'B5', dur: 1.0 },
-        { note: 'A5', dur: 0.5 }, { note: 'B5', dur: 0.5 }, { note: 'C6', dur: 0.5 }, { note: 'B5', dur: 0.5 },
-        { note: 'A5', dur: 0.5 }, { note: 'F5', dur: 0.5 }, { note: 'E5', dur: 1.0 },
-        { note: 'C5', dur: 0.5 }, { note: 'D5', dur: 0.5 }, { note: 'E5', dur: 1.0 },
-        { note: 'C5', dur: 0.5 }, { note: 'D5', dur: 0.5 }, { note: 'E5', dur: 1.0 },
-        { note: 'A5', dur: 0.5 }, { note: 'B5', dur: 0.5 }, { note: 'C6', dur: 0.5 }, { note: 'B5', dur: 0.5 },
-        { note: 'A5', dur: 0.5 }, { note: 'F5', dur: 0.5 }, { note: 'E5', dur: 1.0 },
-        { note: 'A5', dur: 0.5 }, { note: 'A5', dur: 0.5 }, { note: 'B5', dur: 1.0 },
-        { note: 'A5', dur: 0.5 }, { note: 'A5', dur: 0.5 }, { note: 'B5', dur: 1.0 },
-        { note: 'E5', dur: 0.5 }, { note: 'F5', dur: 0.5 }, { note: 'B5', dur: 0.5 }, { note: 'A5', dur: 0.5 },
-        { note: 'F5', dur: 0.5 }, { note: 'E5', dur: 1.5 }
-    ],
-    ode: [
-        { note: 'E5', dur: 0.5 }, { note: 'E5', dur: 0.5 }, { note: 'F5', dur: 0.5 }, { note: 'G5', dur: 0.5 },
-        { note: 'G5', dur: 0.5 }, { note: 'F5', dur: 0.5 }, { note: 'E5', dur: 0.5 }, { note: 'D5', dur: 0.5 },
-        { note: 'C5', dur: 0.5 }, { note: 'C5', dur: 0.5 }, { note: 'D5', dur: 0.5 }, { note: 'E5', dur: 0.5 },
-        { note: 'E5', dur: 0.75 }, { note: 'D5', dur: 0.25 }, { note: 'D5', dur: 1.0 },
-        
-        { note: 'E5', dur: 0.5 }, { note: 'E5', dur: 0.5 }, { note: 'F5', dur: 0.5 }, { note: 'G5', dur: 0.5 },
-        { note: 'G5', dur: 0.5 }, { note: 'F5', dur: 0.5 }, { note: 'E5', dur: 0.5 }, { note: 'D5', dur: 0.5 },
-        { note: 'C5', dur: 0.5 }, { note: 'C5', dur: 0.5 }, { note: 'D5', dur: 0.5 }, { note: 'E5', dur: 0.5 },
-        { note: 'D5', dur: 0.75 }, { note: 'C5', dur: 0.25 }, { note: 'C5', dur: 1.0 }
-    ],
-    furusato: [
-        { note: 'C5', dur: 0.5 }, { note: 'C5', dur: 0.5 }, { note: 'C5', dur: 0.5 }, { note: 'D5', dur: 0.5 },
-        { note: 'E5', dur: 1.0 }, { note: 'E5', dur: 0.5 }, { note: 'E5', dur: 0.5 }, { note: 'F5', dur: 0.5 },
-        { note: 'D5', dur: 0.5 }, { note: 'E5', dur: 0.5 }, { note: 'F5', dur: 0.5 }, { note: 'G5', dur: 1.5 },
-        
-        { note: 'G5', dur: 0.5 }, { note: 'A5', dur: 0.5 }, { note: 'G5', dur: 0.5 }, { note: 'F5', dur: 0.5 },
-        { note: 'E5', dur: 1.0 }, { note: 'D5', dur: 0.5 }, { note: 'C5', dur: 0.5 }, { note: 'D5', dur: 0.5 },
-        { note: 'E5', dur: 0.5 }, { note: 'D5', dur: 0.5 }, { note: 'C5', dur: 1.5 }
-    ]
-};
-
 // --- STATE MANAGEMENT ---
 let audioCtx = null;
 let masterGain = null;
@@ -99,12 +47,6 @@ let recordedNotes = [];
 let isPlayingRecording = false;
 let playbackTimeouts = [];
 
-// Lesson State
-let isLessonActive = false;
-let currentSongKey = 'none';
-let currentLessonIndex = 0;
-let lessonNotes = []; // Instantiated notes for rendering
-let score = 0;
 
 // Metronome State
 let isPlayingMetronome = false;
@@ -118,7 +60,6 @@ let metronomeTimer = null;
 
 // Canvas contexts
 let effectsCanvas, effectsCtx;
-let fallingCanvas, fallingCtx;
 let visualizerCanvas, visualizerCtx;
 
 let particles = [];
@@ -163,8 +104,6 @@ function updateMalletHeadStyle() {
 function initCanvases() {
     effectsCanvas = document.getElementById('effectsCanvas');
     effectsCtx = effectsCanvas.getContext('2d');
-    fallingCanvas = document.getElementById('fallingNotesCanvas');
-    fallingCtx = fallingCanvas.getContext('2d');
     visualizerCanvas = document.getElementById('visualizerCanvas');
     visualizerCtx = visualizerCanvas.getContext('2d');
 
@@ -178,11 +117,6 @@ function resizeCanvases() {
     effectsCanvas.width = frameRect.width;
     effectsCanvas.height = frameRect.height;
     
-    // Resize Falling Notes Canvas
-    const fallContainer = document.querySelector('.falling-notes-container');
-    fallingCanvas.width = fallContainer.clientWidth;
-    fallingCanvas.height = fallContainer.clientHeight;
-
     // Resize Visualizer
     const visContainer = document.querySelector('.visualizer-container');
     visualizerCanvas.width = visContainer.clientWidth;
@@ -620,8 +554,6 @@ function animate() {
         effectsCtx.restore();
     }
 
-    // 2. Falling Notes Canvas Animation (Lesson)
-    animateFallingNotes();
 
     // 3. Audio Visualizer Canvas
     drawVisualizer();
@@ -728,28 +660,7 @@ function strikeNote(noteName, relativeY = 0.5) {
         document.getElementById('recordStatus').textContent = `録音中... (${recordedNotes.length} 音)`;
     }
 
-    // Handle Lesson guided check
-    if (isLessonActive && lessonNotes.length > 0) {
-        const currentTarget = lessonNotes[currentLessonIndex];
-        if (currentTarget && currentTarget.note === noteName && !currentTarget.hit) {
-            currentTarget.hit = true;
-            score++;
-            
-            // Advance lesson note
-            currentLessonIndex++;
-            
-            if (currentLessonIndex >= lessonNotes.length) {
-                // Completed song!
-                document.getElementById('lessonStatus').textContent = `素晴らしい！完奏しました！ スコア: ${score}/${lessonNotes.length}`;
-                document.getElementById('lessonStatus').classList.remove('active');
-                setTimeout(() => {
-                    stopLesson();
-                }, 2000);
-            } else {
-                document.getElementById('lessonStatus').textContent = `いい調子！次の音：${lessonNotes[currentLessonIndex].note}`;
-            }
-        }
-    }
+
 }
 
 // Setup click, slide, touch, and keyboard events
@@ -987,26 +898,6 @@ function setupEventListeners() {
 
     metronomeToggleBtn.addEventListener('click', toggleMetronome);
 
-    // Song Selection
-    const songSelect = document.getElementById('songSelect');
-    const startLessonBtn = document.getElementById('startLessonBtn');
-    const stopLessonBtn = document.getElementById('stopLessonBtn');
-
-    songSelect.addEventListener('change', () => {
-        currentSongKey = songSelect.value;
-        if (currentSongKey === 'none') {
-            startLessonBtn.disabled = true;
-            stopLessonBtn.disabled = true;
-            stopLesson();
-        } else {
-            startLessonBtn.disabled = false;
-            stopLessonBtn.disabled = true;
-        }
-    });
-
-    // Lesson Buttons
-    startLessonBtn.addEventListener('click', startLesson);
-    stopLessonBtn.addEventListener('click', stopLesson);
 
     // Recording Controls
     const recordBtn = document.getElementById('recordBtn');
@@ -1102,180 +993,6 @@ function clearRecording() {
     document.getElementById('recordStatus').textContent = '録音されていません。';
 }
 
-// --- SONG LESSON / PLAY-ALONG ENGINE ---
-
-function startLesson() {
-    if (currentSongKey === 'none') return;
-    
-    if (!audioCtx) initAudio();
-    
-    isLessonActive = true;
-    currentLessonIndex = 0;
-    score = 0;
-    
-    document.getElementById('startLessonBtn').disabled = true;
-    document.getElementById('stopLessonBtn').disabled = false;
-    document.getElementById('songSelect').disabled = true;
-    document.getElementById('lessonStatus').classList.add('active');
-    
-    // Parse selected song into falling notes queue
-    const songData = SONGS[currentSongKey];
-    lessonNotes = [];
-    
-    let accTime = 0.5; // Start padding delay
-    songData.forEach((noteObj, idx) => {
-        lessonNotes.push({
-            note: noteObj.note,
-            time: accTime,     // Time when the note reaches target bar
-            dur: noteObj.dur,
-            hit: false,
-            y: -100 - (accTime * 150), // Map time back to start Y coordinate
-            x: 0 // Will be computed relative to key elements
-        });
-        accTime += noteObj.dur * 1.5; // Scale speed of song slightly
-    });
-
-    document.getElementById('lessonStatus').textContent = `レッスン開始！最初の音：${lessonNotes[0].note}`;
-}
-
-function stopLesson() {
-    isLessonActive = false;
-    lessonNotes = [];
-    document.getElementById('startLessonBtn').disabled = false;
-    document.getElementById('stopLessonBtn').disabled = true;
-    document.getElementById('songSelect').disabled = false;
-    document.getElementById('lessonStatus').textContent = '練習したい曲を選択し、「練習スタート」を押してください。';
-    document.getElementById('lessonStatus').classList.remove('active');
-}
-
-// Animate falling elements on the Falling Canvas
-function animateFallingNotes() {
-    fallingCtx.clearRect(0, 0, fallingCanvas.width, fallingCanvas.height);
-    
-    if (!isLessonActive || lessonNotes.length === 0) return;
-
-    const frameRect = document.querySelector('.glockenspiel-frame').getBoundingClientRect();
-    const fallRect = fallingCanvas.getBoundingClientRect();
-    const targetY = fallingCanvas.height - 15; // Hit target line near bottom
-    
-    // Draw target line helper
-    fallingCtx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-    fallingCtx.setLineDash([5, 5]);
-    fallingCtx.lineWidth = 1;
-    fallingCtx.beginPath();
-    fallingCtx.moveTo(0, targetY);
-    fallingCtx.lineTo(fallingCanvas.width, targetY);
-    fallingCtx.stroke();
-    fallingCtx.setLineDash([]); // reset
-
-    // Get key positions dynamicly
-    lessonNotes.forEach((n, idx) => {
-        // Dynamic lookup X position of corresponding physical key
-        const keyEl = document.querySelector(`.key[data-note="${n.note}"]`);
-        if (keyEl) {
-            const keyRect = keyEl.getBoundingClientRect();
-            n.x = (keyRect.left - fallRect.left) + keyRect.width / 2;
-        }
-    });
-
-    // Check if the current note is waiting to be played
-    const currentTarget = lessonNotes[currentLessonIndex];
-    let speed = 2.2; // Pixels per frame note descent
-
-    // Update note coordinates
-    lessonNotes.forEach((n, idx) => {
-        if (n.hit) {
-            n.y += speed * 2; // fall quickly off-screen if already hit
-            return;
-        }
-
-        // Guided mode: if this note is the current active target,
-        // freeze it at the target line until the user hits it.
-        if (idx === currentLessonIndex) {
-            if (n.y < targetY) {
-                n.y += speed;
-            } else {
-                n.y = targetY; // Lock at target line
-                
-                // Pulsate target glow ring on canvas
-                const pulseSize = 15 + Math.sin(Date.now() * 0.008) * 5;
-                const isAcc = n.note.includes('#');
-                fallingCtx.strokeStyle = isAcc ? 'rgba(255, 0, 127, 0.8)' : 'rgba(0, 240, 255, 0.8)';
-                fallingCtx.lineWidth = 3;
-                fallingCtx.beginPath();
-                fallingCtx.arc(n.x, targetY, pulseSize, 0, Math.PI * 2);
-                fallingCtx.stroke();
-
-                // Make the physical key glow as an helper hint
-                const keyEl = document.querySelector(`.key[data-note="${n.note}"]`);
-                if (keyEl) {
-                    keyEl.classList.add('guided-hint');
-                }
-            }
-        } else {
-            // Other notes descend normally
-            // If it is before currentLessonIndex (missed/ignored), let it fall off
-            n.y += speed;
-        }
-    });
-
-    // Draw notes on canvas
-    lessonNotes.forEach((n, idx) => {
-        // Skip drawing if way off screen
-        if (n.y > fallingCanvas.height + 30 || n.y < -50) return;
-
-        const isAcc = n.note.includes('#');
-        const color = isAcc ? '#ff007f' : '#00f0ff';
-        const shadow = isAcc ? 'rgba(255,0,127,0.8)' : 'rgba(0,240,255,0.8)';
-
-        // Draw note shape (star with tail or glowing orb)
-        fallingCtx.save();
-        fallingCtx.translate(n.x, n.y);
-        
-        // Glow effect
-        fallingCtx.shadowBlur = 15;
-        fallingCtx.shadowColor = shadow;
-        fallingCtx.fillStyle = color;
-
-        if (idx === currentLessonIndex) {
-            // The active target is a pulsing star
-            const scale = 1 + Math.sin(Date.now() * 0.01) * 0.15;
-            fallingCtx.scale(scale, scale);
-        }
-
-        // Draw cute star shape
-        fallingCtx.beginPath();
-        const size = isAcc ? 10 : 12;
-        for (let j = 0; j < 5; j++) {
-            fallingCtx.lineTo(Math.cos((18 + j * 72) * Math.PI / 180) * size, Math.sin((18 + j * 72) * Math.PI / 180) * size);
-            fallingCtx.lineTo(Math.cos((54 + j * 72) * Math.PI / 180) * (size/2), Math.sin((54 + j * 72) * Math.PI / 180) * (size/2));
-        }
-        fallingCtx.closePath();
-        fallingCtx.fill();
-
-        // Draw note letter on the star
-        if (isLabelsVisible) {
-            fallingCtx.fillStyle = '#070714';
-            fallingCtx.shadowBlur = 0;
-            fallingCtx.font = 'bold 8px Outfit';
-            fallingCtx.textAlign = 'center';
-            fallingCtx.textBaseline = 'middle';
-            // Show only note letter like C, D, F# (omit octave 5/6)
-            const noteText = n.note.replace(/\d/, '');
-            fallingCtx.fillText(noteText, 0, 0);
-        }
-
-        fallingCtx.restore();
-    });
-
-    // Clean up hint highlight from keys that are no longer active target
-    document.querySelectorAll('.key').forEach(k => {
-        const note = k.getAttribute('data-note');
-        if (!currentTarget || currentTarget.note !== note) {
-            k.classList.remove('guided-hint');
-        }
-    });
-}
 
 // --- MULTIPLAYER (WEBRTC PEERJS) ENGINE ---
 

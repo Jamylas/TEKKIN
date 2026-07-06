@@ -350,22 +350,7 @@ input:checked + .switch-slider:before {
     min-height: 500px;
 }
 
-/* 落下ノートエリア */
-.falling-notes-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: calc(100% - 380px); /* 鍵盤より上の領域 */
-    pointer-events: none;
-    z-index: 2;
-}
 
-#fallingNotesCanvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-}
 
 /* 鉄琴フレーム */
 .glockenspiel-frame {
@@ -492,36 +477,7 @@ input:checked + .switch-slider:before {
     box-shadow: 0 0 25px var(--glow-magenta);
 }
 
-/* ガイド表示時の点滅（練習モード用） */
-.key.guided-hint {
-    animation: pulseHint 1s infinite alternate ease-in-out;
-}
 
-@keyframes pulseHint {
-    0% {
-        box-shadow: 0 0 8px rgba(0, 240, 255, 0.4), inset 0 0 4px rgba(0, 240, 255, 0.2);
-        border-color: rgba(0, 240, 255, 0.5);
-    }
-    100% {
-        box-shadow: 0 0 22px rgba(0, 240, 255, 0.95), inset 0 0 12px rgba(0, 240, 255, 0.6);
-        border-color: var(--glow-cyan);
-    }
-}
-
-.key.accidental.guided-hint {
-    animation: pulseHintAccidental 1s infinite alternate ease-in-out;
-}
-
-@keyframes pulseHintAccidental {
-    0% {
-        box-shadow: 0 0 8px rgba(255, 0, 127, 0.4), inset 0 0 4px rgba(255, 0, 127, 0.2);
-        border-color: rgba(255, 0, 127, 0.5);
-    }
-    100% {
-        box-shadow: 0 0 22px rgba(255, 0, 127, 0.95), inset 0 0 12px rgba(255, 0, 127, 0.6);
-        border-color: var(--glow-magenta);
-    }
-}
 
 /* 留め具のゴム・ネジ（音板の振動ノード位置） */
 .screw {
@@ -725,7 +681,7 @@ input:checked + .switch-slider:before {
 }
 
 /* レッスン・録音のステータス表示 */
-.lesson-status, .record-status {
+.record-status {
     margin-top: 12px;
     font-size: 12px;
     color: var(--text-muted);
@@ -734,11 +690,6 @@ input:checked + .switch-slider:before {
     padding: 8px 12px;
     border-radius: 8px;
     border-left: 3px solid rgba(255, 255, 255, 0.15);
-}
-
-.lesson-status.active {
-    border-left-color: var(--glow-cyan);
-    color: var(--glow-cyan);
 }
 
 .record-status.active {
