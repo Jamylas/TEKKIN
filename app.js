@@ -1,6 +1,6 @@
 /**
  * Celestial Glockenspiel - Application Logic
- * Audio Engine, Interactive Keyboard, Canvas Particles, Song Lesson, and Recording.
+ * Audio Engine, Interactive Keyboard, Canvas Particles, and Recording.
  */
 
 // --- CONFIGURATION & CONSTANTS ---
