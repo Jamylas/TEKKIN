@@ -39,6 +39,8 @@ let isHost = false;
 let guestMallets = {};
 let guestColorIndex = 0;
 let guestColors = {};
+let allGuests = []; // List of all connected guest IDs (synced from host)
+let localPeerId = ''; // Store local peer ID
 
 // Recording state
 let isRecording = false;
@@ -1011,7 +1013,7 @@ function initMultiplayer(id) {
     updateStatusUI('connecting', '接続サーバーにログイン中...');
 
     // P2P connections are arbitrated by the PeerJS cloud signaling server
-    const localPeerId = isHost ? id : `GUEST-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    localPeerId = isHost ? id : `GUEST-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
     
     peer = new Peer(localPeerId, {
         debug: 1 // Print warnings and errors only
@@ -1073,6 +1075,9 @@ function handleIncomingConnection(conn) {
             type: 'peer_joined',
             peerId: conn.peer
         }, conn.peer); // exclude the new guest
+        
+        // Sync guest list
+        syncGuestsList();
     });
 
     conn.on('data', (data) => {
@@ -1102,6 +1107,9 @@ function handleOutgoingConnection(conn) {
         console.log('Host disconnected.');
         updateStatusUI('disconnected', '接続が切断されました');
         removeConnection(conn);
+        if (!isHost) {
+            handleHostDisconnect();
+        }
     });
     
     conn.on('error', () => removeConnection(conn));
@@ -1124,6 +1132,9 @@ function handleDataMessage(data, senderId) {
         assignGuestColor(data.peerId);
     } else if (data.type === 'peer_left') {
         removeGuestMallet(data.peerId);
+    } else if (data.type === 'sync_guests') {
+        allGuests = data.guests;
+        console.log('Synced guests list from host:', allGuests);
     }
 }
 
@@ -1237,6 +1248,8 @@ function removeConnection(conn) {
             type: 'peer_left',
             peerId: conn.peer
         });
+        // Sync guest list
+        syncGuestsList();
     }
     
     updatePeerCountUI();
@@ -1246,6 +1259,64 @@ function removeConnection(conn) {
         } else {
             updateStatusUI('disconnected', '接続が切断されました');
         }
+    }
+}
+
+function syncGuestsList() {
+    if (!isHost) return;
+    const guestList = connections.filter(c => c.open).map(c => c.peer);
+    broadcast({
+        type: 'sync_guests',
+        guests: guestList
+    });
+}
+
+function handleHostDisconnect() {
+    console.log('Host disconnected. Starting failover logic. Guests in room:', allGuests);
+    updateStatusUI('connecting', 'ホスト切断のため再接続中...');
+
+    // Filter out empty entries and sort guests alphabetically
+    const activeGuests = [...allGuests].filter(id => id).sort();
+    
+    // Clean up phantom mallets
+    Object.keys(guestMallets).forEach(peerId => {
+        removeGuestMallet(peerId);
+    });
+
+    if (activeGuests.length > 0 && localPeerId === activeGuests[0]) {
+        // I am the successor! Promote to Host!
+        console.log('I am the successor. Re-registering as Host in 2.5s...');
+        isHost = true;
+        
+        if (peer) {
+            try {
+                peer.destroy();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        
+        setTimeout(() => {
+            console.log('Promoting to host now with ID:', roomId);
+            initMultiplayer(roomId);
+        }, 2500);
+    } else {
+        // I am a guest. Wait for the successor to register as host, then connect
+        console.log(`Successor is ${activeGuests[0]}. Waiting 5s to reconnect...`);
+        isHost = false;
+        
+        if (peer) {
+            try {
+                peer.destroy();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        
+        setTimeout(() => {
+            console.log('Connecting to new host now...');
+            initMultiplayer(roomId);
+        }, 5000);
     }
 }
 
