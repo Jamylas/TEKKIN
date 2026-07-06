@@ -45,27 +45,6 @@
 
 ---
 
-## 🚀 GitHub Pages へのデプロイ方法
-
-このプロジェクトは純粋なフロントエンド技術（静的HTML/CSS/JS）のみで構築されているため、ビルド不要でGitHub Pagesにデプロイして全世界に公開することができます。
-
-### 簡単デプロイ手順
-
-1. **GitHubに新しいリポジトリを作成**します（例: `celestial-glockenspiel`）。
-2. **ファイルをアップロード**します:
-   - `index.html`
-   - `style.css`
-   - `app.js`
-   - `README.md`
-3. リポジトリの **Settings (設定)** タブを開きます。
-4. 左メニューから **Pages** を選択します。
-5. **Build and deployment** の項目で以下を設定し「Save」をクリックします:
-   - Source: **Deploy from a branch**
-   - Branch: **main** (または `master`)、フォルダは `/ (root)` を選択。
-6. 数分待つと、画面上部に公開URL（例: `https://[ユーザー名].github.io/celestial-glockenspiel/`）が生成され、誰でもブラウザからアクセスして遊べるようになります！
-
----
-
 ## 🛠️ ローカルでの起動方法
 
 リポジトリをクローン後、直接 `index.html` をブラウザでダブルクリックして開くか、以下のコマンドで簡易ローカルサーバーを立ててアクセスしてください。
