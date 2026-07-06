@@ -138,11 +138,11 @@ window.addEventListener('DOMContentLoaded', () => {
         roomId = hash.substring(1); // remove '#'
         isHost = false;
         
-        if (roomId === 'TEKKIN-GRAND-ARENA') {
+        if (roomId === 'TEKKIN-GRAND-ARENA-JAMYLAS') {
             multiplayerMode = 'grand';
-        } else if (roomId.startsWith('TEKKIN-BAND-') && !roomId.startsWith('TEKKIN-BAND-TEMP-')) {
+        } else if (roomId.startsWith('TEKKIN-BAND-JAMYLAS-') && !roomId.startsWith('TEKKIN-BAND-TEMP-')) {
             multiplayerMode = 'quick';
-            const match = roomId.match(/TEKKIN-BAND-(\d+)/);
+            const match = roomId.match(/TEKKIN-BAND-JAMYLAS-(\d+)/);
             if (match) {
                 currentQuickMatchIndex = parseInt(match[1]);
             }
@@ -1177,7 +1177,7 @@ function initMultiplayer(id) {
         updateStatusUI('disconnected', `接続エラー (${err.type})`);
         
         if (err.type === 'unavailable-id' || err.type === 'id-taken-on-server') {
-            console.warn('Room ID is taken on server. Retrying in 2 seconds...');
+            console.warn('Room ID is taken on server. Connecting as guest instead...');
             if (peer) {
                 try {
                     peer.destroy();
@@ -1186,9 +1186,11 @@ function initMultiplayer(id) {
                 }
                 peer = null;
             }
+            isHost = false; // Downgrade to guest since the ID is already hosted!
+            updateModeIndicator();
             setTimeout(() => {
                 initMultiplayer(roomId);
-            }, 2000);
+            }, 1000);
             return;
         }
         
@@ -1547,7 +1549,7 @@ function switchMultiplayerMode(mode) {
 
     if (mode === 'grand') {
         isHost = false; // Join as guest first, auto-failover handles hosting
-        roomId = 'TEKKIN-GRAND-ARENA';
+        roomId = 'TEKKIN-GRAND-ARENA-JAMYLAS';
         window.location.hash = roomId;
         updateModeIndicator();
         initMultiplayer(roomId);
@@ -1581,7 +1583,7 @@ function startQuickMatchSearch() {
     }
 
     console.log(`Quick Match: Checking Band ${currentQuickMatchIndex}...`);
-    roomId = `TEKKIN-BAND-${currentQuickMatchIndex}`;
+    roomId = `TEKKIN-BAND-JAMYLAS-${currentQuickMatchIndex}`;
     window.location.hash = roomId;
     updateModeIndicator(`野良合奏 (バンド ${currentQuickMatchIndex} 検索中...)`);
     initMultiplayer(roomId);
