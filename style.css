@@ -1070,3 +1070,23 @@ input:checked + .switch-slider:before {
     --guest-glow: rgba(189, 0, 255, 0.7);
     --guest-dark: #8000b3;
 }
+
+.reconnect-btn {
+    display: none;
+    margin-left: auto;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reconnect-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: var(--glow-cyan);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+}

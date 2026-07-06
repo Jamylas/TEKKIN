@@ -857,6 +857,17 @@ function setupEventListeners() {
                 }, 2000);
             });
     });
+    // Reconnect button listener
+    document.getElementById('reconnectBtn').addEventListener('click', () => {
+        if (peer) {
+            try {
+                peer.destroy();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        initMultiplayer(roomId);
+    });
 
     // Keyboard label toggle
     document.getElementById('toggleKeyboardLabels').addEventListener('change', (e) => {
@@ -1250,10 +1261,19 @@ function setupShareUI() {
 function updateStatusUI(statusClass, text) {
     const dot = document.getElementById('statusDot');
     const txt = document.getElementById('statusText');
+    const reconnectBtn = document.getElementById('reconnectBtn');
     if (!dot || !txt) return;
 
     dot.className = `status-dot ${statusClass}`;
     txt.textContent = text;
+
+    if (reconnectBtn) {
+        if (statusClass === 'disconnected') {
+            reconnectBtn.style.display = 'inline-block';
+        } else {
+            reconnectBtn.style.display = 'none';
+        }
+    }
 }
 
 function updatePeerCountUI() {
