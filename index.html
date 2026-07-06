@@ -164,12 +164,18 @@
                 <!-- 合奏マルチプレイヤー -->
                 <div class="panel-section">
                     <h2>ONLINE ARENA / 複数人合奏</h2>
-                    <div class="metronome-controls">
+                    <div class="arena-modes">
+                        <button id="joinGrandArenaBtn" class="btn btn-primary">公開アリーナ</button>
+                        <button id="joinQuickMatchBtn" class="btn btn-primary">野良合奏 (少人数)</button>
+                    </div>
+                    <button id="createPrivateRoomBtn" class="btn btn-secondary" style="width: 100%; margin-top: 8px;">非公開ルームを作る</button>
+
+                    <div class="metronome-controls" style="margin-top: 15px;">
                         <div class="control-item">
                             <label>合奏URL (共有用)</label>
                             <input type="text" id="shareUrlInput" class="glass-input" readonly value="接続中...">
                         </div>
-                        <button id="copyShareUrlBtn" class="btn btn-primary" disabled>
+                        <button id="copyShareUrlBtn" class="btn btn-secondary" style="width: 100%; margin-top: 8px;" disabled>
                             URLをコピーして招待
                         </button>
                         <div class="multiplayer-status" id="multiplayerStatus">
@@ -178,6 +184,7 @@
                             <span id="peerCountLabel" class="peer-count-label"></span>
                             <button id="reconnectBtn" class="reconnect-btn">再接続</button>
                         </div>
+                        <div class="mode-indicator" id="modeIndicator">接続モード: 準備中...</div>
                     </div>
                 </div>
             </section>

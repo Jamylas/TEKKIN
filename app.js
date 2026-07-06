@@ -41,6 +41,10 @@ let guestColorIndex = 0;
 let guestColors = {};
 let allGuests = []; // List of all connected guest IDs (synced from host)
 let localPeerId = ''; // Store local peer ID
+let multiplayerMode = 'private'; // 'grand', 'quick', 'private'
+let currentQuickMatchIndex = 1;
+let isSearchingQuickMatch = false;
+let isQuickMatchRoomFull = false;
 
 // Recording state
 let isRecording = false;
@@ -133,13 +137,29 @@ window.addEventListener('DOMContentLoaded', () => {
     if (hash && hash.startsWith('#TEKKIN-')) {
         roomId = hash.substring(1); // remove '#'
         isHost = false;
+        
+        if (roomId === 'TEKKIN-GRAND-ARENA') {
+            multiplayerMode = 'grand';
+        } else if (roomId.startsWith('TEKKIN-BAND-') && !roomId.startsWith('TEKKIN-BAND-TEMP-')) {
+            multiplayerMode = 'quick';
+            const match = roomId.match(/TEKKIN-BAND-(\d+)/);
+            if (match) {
+                currentQuickMatchIndex = parseInt(match[1]);
+            }
+        } else {
+            multiplayerMode = 'private';
+        }
+        
+        updateModeIndicator();
         initMultiplayer(roomId);
     } else {
         // We are the host! Create a room
+        multiplayerMode = 'private';
         const randId = Math.random().toString(36).substring(2, 8).toUpperCase();
         roomId = `TEKKIN-${randId}`;
         isHost = true;
         window.location.hash = roomId; // Set hash
+        updateModeIndicator();
         initMultiplayer(roomId);
     }
 });
@@ -863,7 +883,7 @@ function setupEventListeners() {
         // Broadcast mouse position to peers
         const now = Date.now();
         if (now - lastMouseMoveTime > 40) { // throttle to ~25fps updates
-            if (peer && connections.length > 0) {
+            if (peer && connections.length > 0 && multiplayerMode !== 'grand') {
                 const instContainer = document.querySelector('.instrument-container');
                 const rect = instContainer.getBoundingClientRect();
                 const x = (e.clientX - rect.left) / rect.width;
@@ -887,7 +907,7 @@ function setupEventListeners() {
             customMallet.classList.add('striking');
 
             // Send immediate strike state update to peers
-            if (peer && connections.length > 0) {
+            if (peer && connections.length > 0 && multiplayerMode !== 'grand') {
                 const instContainer = document.querySelector('.instrument-container');
                 const rect = instContainer.getBoundingClientRect();
                 const x = (e.clientX - rect.left) / rect.width;
@@ -910,7 +930,7 @@ function setupEventListeners() {
             customMallet.classList.remove('striking');
 
             // Send immediate strike release state update to peers
-            if (peer && connections.length > 0) {
+            if (peer && connections.length > 0 && multiplayerMode !== 'grand') {
                 broadcast({
                     type: 'mousemove',
                     x: -100,
@@ -959,6 +979,21 @@ function setupEventListeners() {
             }
         }
         initMultiplayer(roomId);
+    });
+
+    // Join Grand Arena button listener
+    document.getElementById('joinGrandArenaBtn').addEventListener('click', () => {
+        switchMultiplayerMode('grand');
+    });
+
+    // Join Quick Match button listener
+    document.getElementById('joinQuickMatchBtn').addEventListener('click', () => {
+        switchMultiplayerMode('quick');
+    });
+
+    // Create Private Room button listener
+    document.getElementById('createPrivateRoomBtn').addEventListener('click', () => {
+        switchMultiplayerMode('private');
     });
 
     // Keyboard label toggle
@@ -1141,18 +1176,34 @@ function initMultiplayer(id) {
         updateStatusUI('disconnected', `接続エラー (${err.type})`);
         
         if (err.type === 'peer-not-found' && !isHost) {
-            // If host not found, maybe host closed or URL is invalid. Become host!
-            console.log('Host not found. Creating a new room as host...');
-            isHost = true;
-            const randId = Math.random().toString(36).substring(2, 8).toUpperCase();
-            roomId = `TEKKIN-${randId}`;
-            window.location.hash = roomId;
-            setTimeout(() => initMultiplayer(roomId), 1000);
+            if (isSearchingQuickMatch) {
+                console.log(`Band ${currentQuickMatchIndex} is empty. Hosting this band!`);
+                isSearchingQuickMatch = false;
+                isHost = true;
+                updateModeIndicator();
+                setTimeout(() => initMultiplayer(roomId), 1000);
+            } else {
+                console.log('Host not found. Hosting the current room ID...');
+                isHost = true;
+                updateModeIndicator();
+                setTimeout(() => initMultiplayer(roomId), 1000);
+            }
         }
     });
 }
 
 function handleIncomingConnection(conn) {
+    if (multiplayerMode === 'quick' && connections.length >= 4) {
+        console.log('Quick Match Room is full! Rejecting guest:', conn.peer);
+        conn.on('open', () => {
+            conn.send({ type: 'room_full' });
+            setTimeout(() => {
+                conn.close();
+            }, 300);
+        });
+        return;
+    }
+
     conn.on('open', () => {
         console.log('Guest connected:', conn.peer);
         connections.push(conn);
@@ -1187,6 +1238,11 @@ function handleOutgoingConnection(conn) {
         console.log('Connected to Host!');
         connections.push(conn);
         updateStatusUI('connected', `セッション接続中`);
+        
+        if (isSearchingQuickMatch) {
+            isSearchingQuickMatch = false;
+            updateModeIndicator();
+        }
     });
 
     conn.on('data', (data) => {
@@ -1197,7 +1253,21 @@ function handleOutgoingConnection(conn) {
         console.log('Host disconnected.');
         updateStatusUI('disconnected', '接続が切断されました');
         removeConnection(conn);
-        if (!isHost) {
+        
+        if (isSearchingQuickMatch && isQuickMatchRoomFull) {
+            isQuickMatchRoomFull = false;
+            if (peer) {
+                try {
+                    peer.destroy();
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+            currentQuickMatchIndex++;
+            setTimeout(() => {
+                startQuickMatchSearch();
+            }, 1000);
+        } else if (!isHost) {
             handleHostDisconnect();
         }
     });
@@ -1213,10 +1283,12 @@ function handleDataMessage(data, senderId) {
             broadcast(data, senderId);
         }
     } else if (data.type === 'mousemove') {
-        updateGuestMallet(senderId, data.x, data.y, data.malletType, data.isStriking);
-        
-        if (isHost) {
-            broadcast(data, senderId);
+        if (multiplayerMode !== 'grand') {
+            updateGuestMallet(senderId, data.x, data.y, data.malletType, data.isStriking);
+            
+            if (isHost) {
+                broadcast(data, senderId);
+            }
         }
     } else if (data.type === 'peer_joined') {
         assignGuestColor(data.peerId);
@@ -1225,6 +1297,9 @@ function handleDataMessage(data, senderId) {
     } else if (data.type === 'sync_guests') {
         allGuests = data.guests;
         console.log('Synced guests list from host:', allGuests);
+    } else if (data.type === 'room_full') {
+        console.log(`Room ${roomId} is full! Moving to next room...`);
+        isQuickMatchRoomFull = true;
     }
 }
 
@@ -1373,10 +1448,11 @@ function handleHostDisconnect() {
         removeGuestMallet(peerId);
     });
 
-    if (activeGuests.length > 0 && localPeerId === activeGuests[0]) {
+    if (activeGuests.length === 0 || localPeerId === activeGuests[0]) {
         // I am the successor! Promote to Host!
         console.log('I am the successor. Re-registering as Host in 2.5s...');
         isHost = true;
+        updateModeIndicator();
         
         if (peer) {
             try {
@@ -1394,6 +1470,7 @@ function handleHostDisconnect() {
         // I am a guest. Wait for the successor to register as host, then connect
         console.log(`Successor is ${activeGuests[0]}. Waiting 5s to reconnect...`);
         isHost = false;
+        updateModeIndicator();
         
         if (peer) {
             try {
@@ -1417,6 +1494,88 @@ function setupShareUI() {
     const shareUrl = `${window.location.origin}${window.location.pathname}#${roomId}`;
     shareUrlInput.value = shareUrl;
     copyBtn.disabled = false;
+}
+
+function switchMultiplayerMode(mode) {
+    if (isSearchingQuickMatch) return;
+    
+    console.log(`Switching multiplayer mode to: ${mode}`);
+    multiplayerMode = mode;
+    
+    if (peer) {
+        try {
+            peer.destroy();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+    
+    Object.keys(guestMallets).forEach(peerId => {
+        removeGuestMallet(peerId);
+    });
+    connections = [];
+    updatePeerCountUI();
+
+    if (mode === 'grand') {
+        isHost = false; // Join as guest first, auto-failover handles hosting
+        roomId = 'TEKKIN-GRAND-ARENA';
+        window.location.hash = roomId;
+        updateModeIndicator();
+        initMultiplayer(roomId);
+    } else if (mode === 'quick') {
+        isHost = false;
+        currentQuickMatchIndex = 1;
+        isSearchingQuickMatch = true;
+        startQuickMatchSearch();
+    } else if (mode === 'private') {
+        isHost = true;
+        const randId = Math.random().toString(36).substring(2, 8).toUpperCase();
+        roomId = `TEKKIN-${randId}`;
+        window.location.hash = roomId;
+        updateModeIndicator();
+        initMultiplayer(roomId);
+    }
+}
+
+function startQuickMatchSearch() {
+    if (currentQuickMatchIndex > 5) {
+        console.log('All public bands are full. Creating a temporary private band...');
+        isSearchingQuickMatch = false;
+        multiplayerMode = 'private';
+        isHost = true;
+        const randId = Math.random().toString(36).substring(2, 8).toUpperCase();
+        roomId = `TEKKIN-BAND-TEMP-${randId}`;
+        window.location.hash = roomId;
+        updateModeIndicator();
+        initMultiplayer(roomId);
+        return;
+    }
+
+    console.log(`Quick Match: Checking Band ${currentQuickMatchIndex}...`);
+    roomId = `TEKKIN-BAND-${currentQuickMatchIndex}`;
+    window.location.hash = roomId;
+    updateModeIndicator(`野良合奏 (バンド ${currentQuickMatchIndex} 検索中...)`);
+    initMultiplayer(roomId);
+}
+
+function updateModeIndicator(customText = null) {
+    const indicator = document.getElementById('modeIndicator');
+    if (!indicator) return;
+
+    if (customText) {
+        indicator.textContent = `接続モード: ${customText}`;
+        return;
+    }
+
+    let modeName = '';
+    if (multiplayerMode === 'grand') {
+        modeName = '公開アリーナ (全員合奏・マレット非表示)';
+    } else if (multiplayerMode === 'quick') {
+        modeName = `野良合奏 (バンド: ${roomId.replace('TEKKIN-', '')})`;
+    } else if (multiplayerMode === 'private') {
+        modeName = `非公開ルーム (ID: ${roomId.replace('TEKKIN-', '')})`;
+    }
+    indicator.textContent = `接続モード: ${modeName}`;
 }
 
 function updateStatusUI(statusClass, text) {

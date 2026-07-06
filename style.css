@@ -1115,3 +1115,27 @@ input:checked + .switch-slider:before {
     border-color: var(--glow-cyan);
     box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
 }
+
+.arena-modes {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 0px;
+}
+
+.arena-modes .btn {
+    padding: 8px 10px;
+    font-size: 11px;
+}
+
+.mode-indicator {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 10px;
+    border-top: 1.5px dashed rgba(255, 255, 255, 0.08);
+    padding-top: 8px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-style: italic;
+    text-align: center;
+}
