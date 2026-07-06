@@ -977,6 +977,7 @@ function setupEventListeners() {
             } catch (e) {
                 console.error(e);
             }
+            peer = null;
         }
         initMultiplayer(roomId);
     });
@@ -1175,6 +1176,22 @@ function initMultiplayer(id) {
         console.error('PeerJS error:', err);
         updateStatusUI('disconnected', `接続エラー (${err.type})`);
         
+        if (err.type === 'unavailable-id' || err.type === 'id-taken-on-server') {
+            console.warn('Room ID is taken on server. Retrying in 2 seconds...');
+            if (peer) {
+                try {
+                    peer.destroy();
+                } catch(e) {
+                    console.error(e);
+                }
+                peer = null;
+            }
+            setTimeout(() => {
+                initMultiplayer(roomId);
+            }, 2000);
+            return;
+        }
+        
         if (err.type === 'peer-not-found' && !isHost) {
             if (isSearchingQuickMatch) {
                 console.log(`Band ${currentQuickMatchIndex} is empty. Hosting this band!`);
@@ -1262,6 +1279,7 @@ function handleOutgoingConnection(conn) {
                 } catch (e) {
                     console.error(e);
                 }
+                peer = null;
             }
             currentQuickMatchIndex++;
             setTimeout(() => {
@@ -1460,6 +1478,7 @@ function handleHostDisconnect() {
             } catch (e) {
                 console.error(e);
             }
+            peer = null;
         }
         
         setTimeout(() => {
@@ -1478,6 +1497,7 @@ function handleHostDisconnect() {
             } catch (e) {
                 console.error(e);
             }
+            peer = null;
         }
         
         setTimeout(() => {
@@ -1508,6 +1528,7 @@ function switchMultiplayerMode(mode) {
         } catch (e) {
             console.error(e);
         }
+        peer = null;
     }
     
     Object.keys(guestMallets).forEach(peerId => {
