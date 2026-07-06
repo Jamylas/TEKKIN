@@ -1193,6 +1193,14 @@ function initMultiplayer(id) {
         }
         
         if (err.type === 'peer-not-found' && !isHost) {
+            if (peer) {
+                try {
+                    peer.destroy();
+                } catch(e) {
+                    console.error(e);
+                }
+                peer = null;
+            }
             if (isSearchingQuickMatch) {
                 console.log(`Band ${currentQuickMatchIndex} is empty. Hosting this band!`);
                 isSearchingQuickMatch = false;
