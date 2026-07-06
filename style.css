@@ -433,7 +433,7 @@ input:checked + .switch-slider:before {
 
 /* 全音（ナチュラル）音板 */
 .key.natural {
-    width: calc(8.33% - 4px); /* 12音 */
+    width: calc(4.545% - 3px); /* 22音 */
     background: linear-gradient(to right, #b5b5c3 0%, #f5f5f7 30%, #e1e1e6 70%, #9e9eb0 100%);
     border: 1px solid #7d7d8f;
     z-index: 5;
@@ -443,8 +443,7 @@ input:checked + .switch-slider:before {
 /* 半音（アクシデンタル）音板 */
 .key.accidental {
     position: absolute;
-    width: calc(8.33% - 10px); /* 全音より少し細く */
-    height: 250px; /* JavaScriptで個別に高さ設定するが、ベースは短め */
+    width: 3.2%; /* 22音幅に合わせた比率 */
     background: linear-gradient(to right, #b5b5c3 0%, #f5f5f7 30%, #e1e1e6 70%, #9e9eb0 100%);
     border: 1px solid #7d7d8f;
     z-index: 10;
@@ -501,9 +500,9 @@ input:checked + .switch-slider:before {
 
 /* 音板の音名とキー案内表示 */
 .note-name {
-    font-size: 13px;
+    font-size: 10px;
     font-weight: 700;
-    margin-top: 50%;
+    margin-top: 40px;
     transform: rotate(-90deg); /* 縦置き文字 */
     color: #444b5a;
     transition: opacity 0.3s ease;
@@ -516,13 +515,13 @@ input:checked + .switch-slider:before {
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 4px;
     color: #fff;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 600;
-    padding: 2px 5px;
+    padding: 1px 4px;
     text-transform: uppercase;
     transition: opacity 0.3s ease;
     pointer-events: none;
-    margin-bottom: 25%;
+    margin-bottom: 25px;
 }
 
 .hide-labels .note-name,
@@ -530,30 +529,7 @@ input:checked + .switch-slider:before {
     opacity: 0;
 }
 
-/* 各キーの個別の高さ調整（音階が上がるにつれて短く）
-   全音 12枚の高さ設定 */
-.natural:nth-child(1) { height: 380px; }
-.natural:nth-child(2) { height: 362px; }
-.natural:nth-child(3) { height: 344px; }
-.natural:nth-child(4) { height: 326px; }
-.natural:nth-child(5) { height: 308px; }
-.natural:nth-child(6) { height: 290px; }
-.natural:nth-child(7) { height: 272px; }
-.natural:nth-child(8) { height: 254px; }
-.natural:nth-child(9) { height: 236px; }
-.natural:nth-child(10) { height: 218px; }
-.natural:nth-child(11) { height: 200px; }
-.natural:nth-child(12) { height: 182px; }
-
-/* 半音 8枚の高さ設定 */
-.accidental:nth-child(1) { height: 290px; } /* C#5 */
-.accidental:nth-child(2) { height: 275px; } /* D#5 */
-.accidental:nth-child(3) { height: 245px; } /* F#5 */
-.accidental:nth-child(4) { height: 230px; } /* G#5 */
-.accidental:nth-child(5) { height: 215px; } /* A#5 */
-.accidental:nth-child(6) { height: 185px; } /* C#6 */
-.accidental:nth-child(7) { height: 170px; } /* D#6 */
-.accidental:nth-child(8) { height: 140px; } /* F#6 */
+/* 各キーの個別の高さ調整（JSで動的に計算して設定するためCSSからは削除） */
 
 /* 打鍵時エフェクト用 Canvas Overlay */
 .effects-canvas {

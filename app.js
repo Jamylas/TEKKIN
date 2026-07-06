@@ -67,6 +67,53 @@ let visualizerCanvas, visualizerCtx;
 let particles = [];
 let activeKeyGlows = {}; // map of noteName -> intensity
 
+const NOTES_CONFIG = [
+    // Octave 5
+    { note: 'C5', freq: 523.25, type: 'natural', trigger: 'A' },
+    { note: 'C#5', freq: 554.37, type: 'accidental', trigger: 'W' },
+    { note: 'D5', freq: 587.33, type: 'natural', trigger: 'S' },
+    { note: 'D#5', freq: 622.25, type: 'accidental', trigger: 'E' },
+    { note: 'E5', freq: 659.25, type: 'natural', trigger: 'D' },
+    { note: 'F5', freq: 698.46, type: 'natural', trigger: 'F' },
+    { note: 'F#5', freq: 739.99, type: 'accidental', trigger: 'T' },
+    { note: 'G5', freq: 783.99, type: 'natural', trigger: 'G' },
+    { note: 'G#5', freq: 830.61, type: 'accidental', trigger: 'Y' },
+    { note: 'A5', freq: 880.00, type: 'natural', trigger: 'H' },
+    { note: 'A#5', freq: 932.33, type: 'accidental', trigger: 'U' },
+    { note: 'B5', freq: 987.77, type: 'natural', trigger: 'J' },
+
+    // Octave 6
+    { note: 'C6', freq: 1046.50, type: 'natural', trigger: 'K' },
+    { note: 'C#6', freq: 1109.73, type: 'accidental', trigger: 'O' },
+    { note: 'D6', freq: 1174.66, type: 'natural', trigger: 'L' },
+    { note: 'D#6', freq: 1244.51, type: 'accidental', trigger: 'P' },
+    { note: 'E6', freq: 1318.51, type: 'natural', trigger: ';' },
+    { note: 'F6', freq: 1396.91, type: 'natural', trigger: '\'' },
+    { note: 'F#6', freq: 1479.98, type: 'accidental', trigger: '[' },
+    { note: 'G6', freq: 1567.98, type: 'natural', trigger: ']' },
+    { note: 'G#6', freq: 1661.22, type: 'accidental', trigger: '' },
+    { note: 'A6', freq: 1760.00, type: 'natural', trigger: '' },
+    { note: 'A#6', freq: 1864.66, type: 'accidental', trigger: '' },
+    { note: 'B6', freq: 1975.53, type: 'natural', trigger: '' },
+
+    // Octave 7
+    { note: 'C7', freq: 2093.00, type: 'natural', trigger: '' },
+    { note: 'C#7', freq: 2217.46, type: 'accidental', trigger: '' },
+    { note: 'D7', freq: 2349.32, type: 'natural', trigger: '' },
+    { note: 'D#7', freq: 2489.02, type: 'accidental', trigger: '' },
+    { note: 'E7', freq: 2637.02, type: 'natural', trigger: '' },
+    { note: 'F7', freq: 2793.83, type: 'natural', trigger: '' },
+    { note: 'F#7', freq: 2959.96, type: 'accidental', trigger: '' },
+    { note: 'G7', freq: 3135.96, type: 'natural', trigger: '' },
+    { note: 'G#7', freq: 3322.44, type: 'accidental', trigger: '' },
+    { note: 'A7', freq: 3520.00, type: 'natural', trigger: '' },
+    { note: 'A#7', freq: 3729.31, type: 'accidental', trigger: '' },
+    { note: 'B7', freq: 3951.07, type: 'natural', trigger: '' },
+
+    // Octave 8
+    { note: 'C8', freq: 4186.01, type: 'natural', trigger: '' }
+];
+
 // --- INITIALIZATION ---
 window.addEventListener('DOMContentLoaded', () => {
     // Select mallet elements
@@ -77,6 +124,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     initStars();
     initCanvases();
+    renderKeyboard();
     setupEventListeners();
     animate();
 
@@ -1358,4 +1406,88 @@ function updatePeerCountUI() {
     } else {
         label.style.display = 'none';
     }
+}
+
+function renderKeyboard() {
+    const container = document.getElementById('keysContainer');
+    if (!container) return;
+
+    // Separate naturals and accidentals
+    const naturals = NOTES_CONFIG.filter(n => n.type === 'natural');
+    const accidentals = NOTES_CONFIG.filter(n => n.type === 'accidental');
+
+    // Create wrapper divs
+    const naturalWrapper = document.createElement('div');
+    naturalWrapper.className = 'natural-keys';
+
+    const accidentalWrapper = document.createElement('div');
+    accidentalWrapper.className = 'accidental-keys';
+
+    const totalNaturals = naturals.length;
+    
+    // 1. Render Natural Keys
+    // Slope: C5 (360px) to C8 (240px) over 22 keys
+    naturals.forEach((n, i) => {
+        const keyEl = document.createElement('div');
+        keyEl.className = 'key natural';
+        keyEl.setAttribute('data-note', n.note);
+        keyEl.setAttribute('data-freq', n.freq);
+        if (n.trigger) {
+            keyEl.setAttribute('data-trigger', n.trigger);
+        }
+
+        // Interpolated height (gentle slope)
+        const height = 360 - i * (120 / (totalNaturals - 1));
+        keyEl.style.height = `${Math.round(height)}px`;
+
+        // Inner structures (screws, label, hint)
+        keyEl.innerHTML = `
+            <div class="screw screw-top"></div>
+            <div class="note-name">${n.note}</div>
+            ${n.trigger ? `<div class="key-hint">${n.trigger}</div>` : ''}
+            <div class="screw screw-bottom"></div>
+        `;
+        naturalWrapper.appendChild(keyEl);
+    });
+
+    // 2. Render Accidental Keys
+    // Positioning centered over gap: left = (i + 1) * (100 / 22)% - 1.6%
+    // Height: 76% of average height of its neighboring natural keys
+    accidentals.forEach(n => {
+        const baseNote = n.note.replace('#', '');
+        const leftNatIndex = naturals.findIndex(nat => nat.note === baseNote);
+        
+        if (leftNatIndex > -1) {
+            const leftNatHeight = 360 - leftNatIndex * (120 / (totalNaturals - 1));
+            const rightNatHeight = 360 - (leftNatIndex + 1) * (120 / (totalNaturals - 1));
+            const avgNatHeight = (leftNatHeight + rightNatHeight) / 2;
+            const accidentalHeight = avgNatHeight * 0.76;
+
+            const keyEl = document.createElement('div');
+            keyEl.className = 'key accidental';
+            keyEl.setAttribute('data-note', n.note);
+            keyEl.setAttribute('data-freq', n.freq);
+            if (n.trigger) {
+                keyEl.setAttribute('data-trigger', n.trigger);
+            }
+
+            keyEl.style.height = `${Math.round(accidentalHeight)}px`;
+            
+            // Positioning centered over gap
+            const leftPos = (leftNatIndex + 1) * (100 / totalNaturals) - 1.6;
+            keyEl.style.left = `${leftPos}%`;
+
+            keyEl.innerHTML = `
+                <div class="screw screw-top"></div>
+                <div class="note-name">${n.note}</div>
+                ${n.trigger ? `<div class="key-hint">${n.trigger}</div>` : ''}
+                <div class="screw screw-bottom"></div>
+            `;
+            accidentalWrapper.appendChild(keyEl);
+        }
+    });
+
+    container.innerHTML = '';
+    container.appendChild(naturalWrapper);
+    container.appendChild(accidentalWrapper);
 }
