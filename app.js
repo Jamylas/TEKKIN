@@ -1289,7 +1289,15 @@ function initMultiplayer(id) {
         debug: 1 // Print warnings and errors only
     });
 
+    // 接続タイムアウト処理（シグナリングサーバーから応答がない場合）
+    let loginTimeout = setTimeout(() => {
+        if (peer && !peer.open) {
+            updateStatusUI('disconnected', '接続タイムアウト (広告ブロックや回線制限の可能性があります)');
+        }
+    }, 8000);
+
     peer.on('open', () => {
+        clearTimeout(loginTimeout);
         console.log('PeerJS server connection open. My Peer ID:', localPeerId);
         setupShareUI();
         
@@ -1308,8 +1316,9 @@ function initMultiplayer(id) {
     });
 
     peer.on('error', (err) => {
+        clearTimeout(loginTimeout);
         console.error('PeerJS error:', err);
-        updateStatusUI('disconnected', '接続エラー');
+        updateStatusUI('disconnected', `接続エラー (${err.type})`);
         
         if (err.type === 'peer-not-found' && !isHost) {
             // If host not found, maybe host closed or URL is invalid. Become host!
