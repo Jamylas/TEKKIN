@@ -414,7 +414,7 @@ input:checked + .switch-slider:before {
     pointer-events: none; /* 下の鍵盤に触れるように */
 }
 
-/* 音板（キー）の基本スタイル */
+/* 音板（キー）の基本スタイル - シルバー金属色仕様 */
 .key {
     position: relative;
     display: flex;
