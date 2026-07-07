@@ -66,11 +66,7 @@ let lookahead = 25.0;
 let metronomeTimer = null;
 
 // Canvas contexts
-let effectsCanvas, effectsCtx;
 let visualizerCanvas, visualizerCtx;
-
-let particles = [];
-let activeKeyGlows = {}; // map of noteName -> intensity
 
 const NOTES_CONFIG = [
     // Octave 5
@@ -127,7 +123,6 @@ window.addEventListener('DOMContentLoaded', () => {
         malletHead = customMallet.querySelector('.mallet-head');
         updateMalletHeadStyle();
     }
-    initStars();
     initCanvases();
     renderKeyboard();
     setupEventListeners();
@@ -191,8 +186,6 @@ function updateMalletHeadStyle() {
 
 // Canvas Setup
 function initCanvases() {
-    effectsCanvas = document.getElementById('effectsCanvas');
-    effectsCtx = effectsCanvas.getContext('2d');
     visualizerCanvas = document.getElementById('visualizerCanvas');
     visualizerCtx = visualizerCanvas.getContext('2d');
 
@@ -201,49 +194,10 @@ function initCanvases() {
 }
 
 function resizeCanvases() {
-    // Resize Effects Canvas
-    const frameRect = document.querySelector('.glockenspiel-frame').getBoundingClientRect();
-    effectsCanvas.width = frameRect.width;
-    effectsCanvas.height = frameRect.height;
-    
     // Resize Visualizer
     const visContainer = document.querySelector('.visualizer-container');
     visualizerCanvas.width = visContainer.clientWidth;
     visualizerCanvas.height = visContainer.clientHeight;
-}
-
-// Background Twinkling Stars
-function initStars() {
-    const bg = document.getElementById('starsBackground');
-    if (!bg) return;
-    
-    // Generate scrolling digital particles and notes
-    const items = ['♪', '♫', '♬', '♩', '✦', '•', '▫'];
-    const itemCount = 50;
-    
-    for (let i = 0; i < itemCount; i++) {
-        const el = document.createElement('div');
-        const isNote = Math.random() > 0.4;
-        
-        if (isNote) {
-            el.className = 'cyber-note';
-            el.textContent = items[Math.floor(Math.random() * 4)];
-            el.style.fontSize = `${Math.random() * 12 + 10}px`;
-        } else {
-            el.className = 'cyber-spark';
-            el.textContent = items[Math.floor(Math.random() * 3) + 4];
-            el.style.fontSize = `${Math.random() * 6 + 4}px`;
-        }
-        
-        el.style.left = `${Math.random() * 100}%`;
-        el.style.top = `${Math.random() * 100}%`;
-        
-        el.style.setProperty('--duration', `${Math.random() * 15 + 15}s`);
-        el.style.setProperty('--opacity', Math.random() * 0.4 + 0.15);
-        el.style.setProperty('--color', Math.random() > 0.5 ? '#ff6a00' : '#00f0ff');
-        
-        bg.appendChild(el);
-    }
 }
 
 // --- AUDIO SETUP ---
@@ -571,122 +525,9 @@ function toggleMetronome() {
 
 // --- VISUAL EFFECTS ENGINE ---
 
-// Spawn spark particles upon striking a note
-function spawnParticles(x, y, noteColor) {
-    const pCount = Math.floor(Math.random() * 12) + 12;
-    const sparkColor = Math.random() > 0.5 ? '#00f0ff' : '#ff6a00';
-    
-    for (let i = 0; i < pCount; i++) {
-        const isNote = Math.random() > 0.7; // 30% chance of note particle
-        const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 4 + 2;
-        
-        if (isNote) {
-            const symbols = ['♪', '♫', '♬', '♩'];
-            particles.push({
-                type: 'note',
-                symbol: symbols[Math.floor(Math.random() * symbols.length)],
-                x: x,
-                y: y,
-                vx: (Math.random() - 0.5) * 1.5,
-                vy: -(Math.random() * 2 + 1),
-                size: Math.random() * 6 + 12,
-                color: noteColor,
-                alpha: 1.0,
-                decay: Math.random() * 0.015 + 0.01
-            });
-        } else {
-            particles.push({
-                type: 'spark',
-                x: x,
-                y: y,
-                vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed - 1.5,
-                size: Math.random() * 3 + 1.5,
-                color: sparkColor,
-                alpha: 1.0,
-                decay: Math.random() * 0.03 + 0.02
-            });
-        }
-    }
-}
-
-// Animate sparkles and visual elements
+// Animate visual elements
 function animate() {
-    // 1. Particle and glow Canvas Animation
-    effectsCtx.clearRect(0, 0, effectsCanvas.width, effectsCanvas.height);
-    
-    // Draw and update active key glows
-    Object.keys(activeKeyGlows).forEach(note => {
-        if (activeKeyGlows[note] > 0.01) {
-            activeKeyGlows[note] *= 0.92; // exponential fade
-            
-            const keyEl = document.querySelector(`.key[data-note="${note}"]`);
-            if (keyEl) {
-                const rect = keyEl.getBoundingClientRect();
-                const frameRect = document.querySelector('.glockenspiel-frame').getBoundingClientRect();
-                const x = rect.left - frameRect.left + rect.width / 2;
-                const y = rect.top - frameRect.top + rect.height / 2;
-                
-                // Draw ripple glow ring
-                const gradient = effectsCtx.createRadialGradient(x, y, 5, x, y, rect.width * 1.5 * (1 - activeKeyGlows[note]));
-                const color = note.includes('#') ? '255, 0, 127' : '0, 240, 255';
-                gradient.addColorStop(0, `rgba(${color}, 0)`);
-                gradient.addColorStop(0.5, `rgba(${color}, ${activeKeyGlows[note] * 0.4})`);
-                gradient.addColorStop(1, `rgba(${color}, 0)`);
-                
-                effectsCtx.fillStyle = gradient;
-                effectsCtx.beginPath();
-                effectsCtx.arc(x, y, rect.width * 1.5, 0, Math.PI * 2);
-                effectsCtx.fill();
-            }
-        } else {
-            delete activeKeyGlows[note];
-        }
-    });
-
-    // Update & draw particles
-    for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.type === 'spark') {
-            p.vy += 0.08; // gravity for sparks
-        }
-        p.alpha -= p.decay;
-        
-        if (p.alpha <= 0) {
-            particles.splice(i, 1);
-            continue;
-        }
-
-        effectsCtx.save();
-        effectsCtx.translate(p.x, p.y);
-        effectsCtx.globalAlpha = p.alpha;
-        effectsCtx.fillStyle = p.color;
-        effectsCtx.shadowBlur = 8;
-        effectsCtx.shadowColor = p.color;
-
-        if (p.type === 'note') {
-            effectsCtx.font = `bold ${p.size}px 'Outfit', sans-serif`;
-            effectsCtx.textAlign = 'center';
-            effectsCtx.textBaseline = 'middle';
-            effectsCtx.fillText(p.symbol, 0, 0);
-        } else {
-            // Draw diamond/spark shape
-            effectsCtx.beginPath();
-            effectsCtx.moveTo(0, -p.size * 2);
-            effectsCtx.lineTo(p.size, 0);
-            effectsCtx.lineTo(0, p.size * 2);
-            effectsCtx.lineTo(-p.size, 0);
-            effectsCtx.closePath();
-            effectsCtx.fill();
-        }
-        effectsCtx.restore();
-    }
-
-
-    // 3. Audio Visualizer Canvas
+    // Audio Visualizer Canvas
     drawVisualizer();
 
     requestAnimationFrame(animate);
@@ -763,15 +604,7 @@ function strikeNote(noteName, relativeY = 0.5) {
     const freq = parseFloat(keyEl.getAttribute('data-freq'));
     playNoteAudio(freq, relativeY);
 
-    // Get key center coordinate for particles
-    const rect = keyEl.getBoundingClientRect();
-    const frameRect = document.querySelector('.glockenspiel-frame').getBoundingClientRect();
-    const x = rect.left - frameRect.left + rect.width / 2;
-    const y = rect.top - frameRect.top + rect.height / 2;
 
-    const color = noteName.includes('#') ? 'var(--glow-magenta)' : 'var(--glow-cyan)';
-    activeKeyGlows[noteName] = 1.0;
-    spawnParticles(x, y, color);
 
     // Broadcast note strike to peers
     if (peer && connections.length > 0) {
@@ -1425,13 +1258,6 @@ function broadcast(message, excludePeerId = null) {
 }
 
 function playReceivedStrike(note, relativeY, senderId) {
-    const colorIndex = guestColors[senderId] || 1;
-    let color = 'var(--glow-cyan)';
-    if (colorIndex === 1) color = '#ff007f';
-    else if (colorIndex === 2) color = '#ffb700';
-    else if (colorIndex === 3) color = '#39ff14';
-    else if (colorIndex === 4) color = '#bd00ff';
-    
     const keyEl = document.querySelector(`.key[data-note="${note}"]`);
     if (keyEl) {
         keyEl.classList.add('active');
@@ -1439,14 +1265,6 @@ function playReceivedStrike(note, relativeY, senderId) {
         
         const freq = parseFloat(keyEl.getAttribute('data-freq'));
         playNoteAudio(freq, relativeY);
-        
-        const rect = keyEl.getBoundingClientRect();
-        const frameRect = document.querySelector('.glockenspiel-frame').getBoundingClientRect();
-        const x = rect.left - frameRect.left + rect.width / 2;
-        const y = rect.top - frameRect.top + rect.height / 2;
-        
-        activeKeyGlows[note] = 1.0;
-        spawnParticles(x, y, color);
     }
 }
 

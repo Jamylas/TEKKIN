@@ -79,65 +79,7 @@ body {
     overflow: hidden;
 }
 
-.cyber-note, .cyber-spark {
-    position: absolute;
-    color: var(--color, var(--glow-cyan));
-    opacity: var(--opacity, 0.3);
-    font-family: 'Outfit', sans-serif;
-    pointer-events: none;
-    text-shadow: 0 0 10px var(--color, var(--glow-cyan));
-    animation: drift var(--duration, 20s) infinite linear;
-}
 
-@keyframes drift {
-    0% {
-        transform: translateY(0) translateX(0) rotate(0deg);
-        opacity: 0;
-    }
-    10% {
-        opacity: var(--opacity, 0.3);
-    }
-    90% {
-        opacity: var(--opacity, 0.3);
-    }
-    100% {
-        transform: translateY(-200px) translateX(50px) rotate(360deg);
-        opacity: 0;
-    }
-}
-
-/* 背景を漂う発光オーブ */
-.glow-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(120px);
-    z-index: -1;
-    opacity: 0.3;
-    pointer-events: none;
-    animation: floatOrb 25s infinite alternate ease-in-out;
-}
-
-.orb-1 {
-    width: 400px;
-    height: 400px;
-    background: radial-gradient(circle, rgba(0, 240, 255, 0.4) 0%, transparent 70%);
-    top: -100px;
-    left: -100px;
-}
-
-.orb-2 {
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(255, 0, 127, 0.35) 0%, transparent 70%);
-    bottom: -150px;
-    right: -100px;
-    animation-delay: -5s;
-}
-
-@keyframes floatOrb {
-    0% { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(100px, 80px) scale(1.2); }
-}
 
 /* アプリ全体のコンテナ */
 .app-container {
@@ -572,16 +514,7 @@ input:checked + .switch-slider:before {
 
 /* 各キーの個別の高さ調整（JSで動的に計算して設定するためCSSからは削除） */
 
-/* 打鍵時エフェクト用 Canvas Overlay */
-.effects-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 6;
-}
+
 
 /* パネルセクション */
 .panel-section {
