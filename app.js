@@ -1604,7 +1604,8 @@ function setupShareUI() {
 }
 
 function switchMultiplayerMode(mode) {
-    if (isSearchingQuickMatch) return;
+    isSearchingQuickMatch = false; // Cancel ongoing quick match search
+    isManuallySwitchingMode = true; // Mark as manual switch to suppress failover logs
     
     console.log(`Switching multiplayer mode to: ${mode}`);
     multiplayerMode = mode;
