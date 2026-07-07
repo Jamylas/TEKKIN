@@ -375,7 +375,7 @@ input:checked + .switch-slider:before {
 .keys-container {
     position: relative;
     width: 100%;
-    height: 380px; /* 音板の最大高さ */
+    height: 500px; /* 音板の最大高さ（2列を収めるために拡大） */
     margin: 0 auto;
 }
 
@@ -385,7 +385,9 @@ input:checked + .switch-slider:before {
     width: 100%;
     height: 100%;
     justify-content: space-between;
-    align-items: flex-start; /* 上揃えにして、徐々に短くなる */
+    align-items: flex-start; /* 上揃え（中央のライン） */
+    padding-top: 225px; /* 中央のライン（白鍵の上端）まで押し下げる */
+    box-sizing: border-box;
 }
 
 .accidental-keys {
@@ -404,14 +406,14 @@ input:checked + .switch-slider:before {
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    padding: 25px 0;
+    padding: 20px 0; /* ショートなキーにも収まるようパディングを少し削る */
     border-radius: 4px 4px 8px 8px;
     cursor: pointer;
     box-shadow: 
         inset 1px 1px 3px rgba(255,255,255,0.7),
         0 4px 10px rgba(0,0,0,0.4);
     transition: transform 0.05s ease, box-shadow 0.05s ease;
-    transform-origin: top center;
+    transform-origin: center center; /* 中央起点スケールで違和感を防ぐ */
 }
 
 /* 全音（ナチュラル）音板 */
@@ -485,7 +487,7 @@ input:checked + .switch-slider:before {
 .note-name {
     font-size: 10px;
     font-weight: 700;
-    margin-top: 40px;
+    margin-top: 30px; /* ショートなキーに合わせて上部余白を調整 */
     transform: rotate(-90deg); /* 縦置き文字 */
     color: #444b5a;
     transition: opacity 0.3s ease;
@@ -504,7 +506,7 @@ input:checked + .switch-slider:before {
     text-transform: uppercase;
     transition: opacity 0.3s ease;
     pointer-events: none;
-    margin-bottom: 25px;
+    margin-bottom: 20px; /* ショートなキーに合わせて下部余白を調整 */
 }
 
 .hide-labels .note-name,

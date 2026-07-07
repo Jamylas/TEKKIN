@@ -346,11 +346,13 @@ export function setupEventListeners() {
 
 /**
  * 設定された `NOTES_CONFIG` データに基づいて、HTML 上に鉄琴の音板群（幹音、派生音）を動的に描画します。
- * 鉄琴らしい傾斜（低音ほど大きく、高音ほど小さいサイズ）を高さ計算で表現します。
+ * 2列の独立した配列（白鍵を下揃え、黒鍵を上部隙間空け）にすることで、より現実に近いデザインに仕上げます。
  */
 export function renderKeyboard() {
     const container = document.getElementById('keysContainer');
     if (!container) return;
+
+    const containerHeight = container.clientHeight || 500;
 
     // 幹音 (natural) と派生音 (accidental) に分割
     const naturals = NOTES_CONFIG.filter(n => n.type === 'natural');
@@ -366,7 +368,7 @@ export function renderKeyboard() {
     const totalNaturals = naturals.length;
     
     // 1. 幹音 (白鍵に相当する部分) のレンダリング
-    // 低音 C5 (高さ360px) から 高音 C8 (高さ240px) に向かって緩やかに傾斜するよう高さを補間
+    // 低音 C5 (高さ260px) から 高音 C8 (高さ170px) に向かって緩やかに傾斜するよう高さを補間
     naturals.forEach((n, i) => {
         const keyEl = document.createElement('div');
         keyEl.className = 'key natural';
@@ -377,7 +379,7 @@ export function renderKeyboard() {
         }
 
         // 高さを直線補間で算出
-        const height = 360 - i * (120 / (totalNaturals - 1));
+        const height = 260 - i * (90 / (totalNaturals - 1));
         keyEl.style.height = `${Math.round(height)}px`;
 
         // 飾りネジ、音名ラベル、キーヒントを流し込み
@@ -391,17 +393,17 @@ export function renderKeyboard() {
     });
 
     // 2. 派生音 (黒鍵に相当する部分) のレンダリング
-    // 対応する幹音の隙間に重なるようパーセントで left 座標を計算
-    // 高さは、挟まれる左右の幹音の平均高さの 76% に設定
+    // 対応する幹音の隙間に配置し、白鍵と重なりすぎないよう上部に隙間（gap = 15px）を空けて浮かせます
+    const gap = 15; // 白鍵上端と黒鍵下端の間の垂直ギャップ (px)
     accidentals.forEach(n => {
         const baseNote = n.note.replace('#', '');
         const leftNatIndex = naturals.findIndex(nat => nat.note === baseNote);
         
         if (leftNatIndex > -1) {
-            const leftNatHeight = 360 - leftNatIndex * (120 / (totalNaturals - 1));
-            const rightNatHeight = 360 - (leftNatIndex + 1) * (120 / (totalNaturals - 1));
+            const leftNatHeight = 260 - leftNatIndex * (90 / (totalNaturals - 1));
+            const rightNatHeight = 260 - (leftNatIndex + 1) * (90 / (totalNaturals - 1));
             const avgNatHeight = (leftNatHeight + rightNatHeight) / 2;
-            const accidentalHeight = avgNatHeight * 0.76;
+            const accidentalHeight = avgNatHeight * 0.75;
 
             const keyEl = document.createElement('div');
             keyEl.className = 'key accidental';
@@ -416,6 +418,14 @@ export function renderKeyboard() {
             // 隙間（ gap ）の真上に配置するための left 座標計算
             const leftPos = (leftNatIndex + 1) * (100 / totalNaturals) - 1.6;
             keyEl.style.left = `${leftPos}%`;
+
+            // 白鍵の上端のY座標（上揃えで、padding-topが225pxあるため一律225px）
+            const y_avg_nat_top = 225;
+            // 黒鍵の下端が、白鍵の上端から gap (15px) 離れるようにY座標(top)を計算 (黒鍵は210pxの位置で下揃えになる)
+            const y_bottom = y_avg_nat_top - gap;
+            const y_top = y_bottom - accidentalHeight;
+            
+            keyEl.style.top = `${Math.round(y_top)}px`;
 
             keyEl.innerHTML = `
                 <div class="screw screw-top"></div>
