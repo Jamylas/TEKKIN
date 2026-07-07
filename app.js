@@ -141,11 +141,19 @@ window.addEventListener('DOMContentLoaded', () => {
         
         if (roomId === 'TEKKIN-GRAND-ARENA-JAMYLAS-V2' || roomId === 'TEKKIN-GRAND-ARENA-JAMYLAS') {
             multiplayerMode = 'grand';
+            if (roomId === 'TEKKIN-GRAND-ARENA-JAMYLAS') {
+                roomId = 'TEKKIN-GRAND-ARENA-JAMYLAS-V2';
+                window.location.hash = roomId;
+            }
         } else if ((roomId.startsWith('TEKKIN-BAND-JAMYLAS-V2-') || roomId.startsWith('TEKKIN-BAND-JAMYLAS-')) && !roomId.startsWith('TEKKIN-BAND-TEMP-')) {
             multiplayerMode = 'quick';
             const match = roomId.match(/TEKKIN-BAND-(?:JAMYLAS-V2-|JAMYLAS-)(\d+)/);
             if (match) {
                 currentQuickMatchIndex = parseInt(match[1]);
+            }
+            if (roomId.startsWith('TEKKIN-BAND-JAMYLAS-') && !roomId.startsWith('TEKKIN-BAND-JAMYLAS-V2-')) {
+                roomId = `TEKKIN-BAND-JAMYLAS-V2-${currentQuickMatchIndex}`;
+                window.location.hash = roomId;
             }
         } else {
             multiplayerMode = 'private';
