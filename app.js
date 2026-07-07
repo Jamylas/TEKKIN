@@ -139,11 +139,11 @@ window.addEventListener('DOMContentLoaded', () => {
         roomId = hash.substring(1); // remove '#'
         isHost = false;
         
-        if (roomId === 'TEKKIN-GRAND-ARENA-JAMYLAS') {
+        if (roomId === 'TEKKIN-GRAND-ARENA-JAMYLAS-V2' || roomId === 'TEKKIN-GRAND-ARENA-JAMYLAS') {
             multiplayerMode = 'grand';
-        } else if (roomId.startsWith('TEKKIN-BAND-JAMYLAS-') && !roomId.startsWith('TEKKIN-BAND-TEMP-')) {
+        } else if ((roomId.startsWith('TEKKIN-BAND-JAMYLAS-V2-') || roomId.startsWith('TEKKIN-BAND-JAMYLAS-')) && !roomId.startsWith('TEKKIN-BAND-TEMP-')) {
             multiplayerMode = 'quick';
-            const match = roomId.match(/TEKKIN-BAND-JAMYLAS-(\d+)/);
+            const match = roomId.match(/TEKKIN-BAND-(?:JAMYLAS-V2-|JAMYLAS-)(\d+)/);
             if (match) {
                 currentQuickMatchIndex = parseInt(match[1]);
             }
@@ -157,10 +157,21 @@ window.addEventListener('DOMContentLoaded', () => {
         // Default to Grand Arena!
         multiplayerMode = 'grand';
         isHost = true; // Host first, falls back to guest if taken on server
-        roomId = 'TEKKIN-GRAND-ARENA-JAMYLAS';
+        roomId = 'TEKKIN-GRAND-ARENA-JAMYLAS-V2';
         window.location.hash = roomId;
         updateModeIndicator();
         initMultiplayer(roomId);
+    }
+});
+
+// リロード時・ページ離脱時のゾンビピア防止クリーンアップ
+window.addEventListener('beforeunload', () => {
+    if (peer) {
+        try {
+            peer.destroy();
+        } catch (e) {
+            console.error(e);
+        }
     }
 });
 
@@ -1615,7 +1626,7 @@ function switchMultiplayerMode(mode) {
 
     if (mode === 'grand') {
         isHost = true; // Host first, falls back to guest if taken on server
-        roomId = 'TEKKIN-GRAND-ARENA-JAMYLAS';
+        roomId = 'TEKKIN-GRAND-ARENA-JAMYLAS-V2';
         window.location.hash = roomId;
         updateModeIndicator();
         initMultiplayer(roomId);
@@ -1649,7 +1660,7 @@ function startQuickMatchSearch() {
     }
 
     console.log(`Quick Match: Checking Band ${currentQuickMatchIndex}...`);
-    roomId = `TEKKIN-BAND-JAMYLAS-${currentQuickMatchIndex}`;
+    roomId = `TEKKIN-BAND-JAMYLAS-V2-${currentQuickMatchIndex}`;
     window.location.hash = roomId;
     isHost = true; // Host first to quickly check ownership
     updateModeIndicator(`野良合奏 (バンド ${currentQuickMatchIndex} 検索中...)`);
