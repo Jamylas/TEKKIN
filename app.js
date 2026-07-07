@@ -156,7 +156,7 @@ window.addEventListener('DOMContentLoaded', () => {
     } else {
         // Default to Grand Arena!
         multiplayerMode = 'grand';
-        isHost = false; // Join as guest first, auto-failover handles hosting
+        isHost = true; // Host first, falls back to guest if taken on server
         roomId = 'TEKKIN-GRAND-ARENA-JAMYLAS';
         window.location.hash = roomId;
         updateModeIndicator();
@@ -1142,18 +1142,28 @@ function initMultiplayer(id) {
     // P2P connections are arbitrated by the PeerJS cloud signaling server
     localPeerId = isHost ? id : `GUEST-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
     
-    peer = new Peer(localPeerId, {
+    const currentPeer = new Peer(localPeerId, {
         debug: 1 // Print warnings and errors only
     });
+    peer = currentPeer;
 
     // 接続タイムアウト処理（シグナリングサーバーから応答がない場合）
     let loginTimeout = setTimeout(() => {
-        if (peer && !peer.open) {
+        if (peer === currentPeer && !currentPeer.open) {
             updateStatusUI('disconnected', '接続タイムアウト (広告ブロックや回線制限の可能性があります)');
+            try {
+                currentPeer.destroy();
+            } catch (e) {
+                console.error(e);
+            }
+            if (peer === currentPeer) {
+                peer = null;
+            }
         }
     }, 8000);
 
-    peer.on('open', () => {
+    currentPeer.on('open', () => {
+        if (peer !== currentPeer) return;
         clearTimeout(loginTimeout);
         console.log('PeerJS server connection open. My Peer ID:', localPeerId);
         setupShareUI();
@@ -1161,30 +1171,68 @@ function initMultiplayer(id) {
         if (isHost) {
             updateStatusUI('connected', 'ホストとして待機中');
             // Host waits for guests to connect
-            peer.on('connection', (conn) => {
-                handleIncomingConnection(conn);
+            currentPeer.on('connection', (conn) => {
+                if (peer !== currentPeer) return;
+                handleIncomingConnection(conn, currentPeer);
             });
         } else {
             updateStatusUI('connecting', 'ホストに接続中...');
             // Guest connects to Host
-            const conn = peer.connect(id);
-            handleOutgoingConnection(conn);
+            const conn = currentPeer.connect(id);
+            
+            // ゾンビホスト対策として接続タイムアウト（7秒）を設定
+            const connectTimeout = setTimeout(() => {
+                if (peer !== currentPeer) return;
+                if (conn && !conn.open) {
+                    console.warn(`Connection to host ${id} timed out. Host might be a zombie peer.`);
+                    conn.close();
+                    
+                    try {
+                        currentPeer.destroy();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                    if (peer === currentPeer) {
+                        peer = null;
+                    }
+                    
+                    if (isSearchingQuickMatch) {
+                        console.log(`Band ${currentQuickMatchIndex} host timed out. Hosting this band!`);
+                        isSearchingQuickMatch = false;
+                        isHost = true;
+                        updateModeIndicator();
+                        setTimeout(() => {
+                            initMultiplayer(roomId);
+                        }, 1000);
+                    } else {
+                        console.log('Host timed out. Hosting the current room ID...');
+                        isHost = true;
+                        updateModeIndicator();
+                        setTimeout(() => {
+                            initMultiplayer(roomId);
+                        }, 1000);
+                    }
+                }
+            }, 7000);
+
+            handleOutgoingConnection(conn, currentPeer, connectTimeout);
         }
     });
 
-    peer.on('error', (err) => {
+    currentPeer.on('error', (err) => {
+        if (peer !== currentPeer) return;
         clearTimeout(loginTimeout);
         console.error('PeerJS error:', err);
         updateStatusUI('disconnected', `接続エラー (${err.type})`);
         
         if (err.type === 'unavailable-id' || err.type === 'id-taken-on-server') {
             console.warn('Room ID is taken on server. Connecting as guest instead...');
-            if (peer) {
-                try {
-                    peer.destroy();
-                } catch(e) {
-                    console.error(e);
-                }
+            try {
+                currentPeer.destroy();
+            } catch(e) {
+                console.error(e);
+            }
+            if (peer === currentPeer) {
                 peer = null;
             }
             isHost = false; // Downgrade to guest since the ID is already hosted!
@@ -1196,12 +1244,12 @@ function initMultiplayer(id) {
         }
         
         if (err.type === 'peer-not-found' && !isHost) {
-            if (peer) {
-                try {
-                    peer.destroy();
-                } catch(e) {
-                    console.error(e);
-                }
+            try {
+                currentPeer.destroy();
+            } catch(e) {
+                console.error(e);
+            }
+            if (peer === currentPeer) {
                 peer = null;
             }
             if (isSearchingQuickMatch) {
@@ -1220,7 +1268,7 @@ function initMultiplayer(id) {
     });
 }
 
-function handleIncomingConnection(conn) {
+function handleIncomingConnection(conn, currentPeer) {
     if (multiplayerMode === 'quick' && connections.length >= 4) {
         console.log('Quick Match Room is full! Rejecting guest:', conn.peer);
         conn.on('open', () => {
@@ -1233,6 +1281,7 @@ function handleIncomingConnection(conn) {
     }
 
     conn.on('open', () => {
+        if (peer !== currentPeer) return;
         console.log('Guest connected:', conn.peer);
         connections.push(conn);
         assignGuestColor(conn.peer);
@@ -1250,19 +1299,26 @@ function handleIncomingConnection(conn) {
     });
 
     conn.on('data', (data) => {
+        if (peer !== currentPeer) return;
         handleDataMessage(data, conn.peer);
     });
 
     conn.on('close', () => {
+        if (peer !== currentPeer) return;
         console.log('Guest disconnected:', conn.peer);
         removeConnection(conn);
     });
     
-    conn.on('error', () => removeConnection(conn));
+    conn.on('error', () => {
+        if (peer !== currentPeer) return;
+        removeConnection(conn);
+    });
 }
 
-function handleOutgoingConnection(conn) {
+function handleOutgoingConnection(conn, currentPeer, connectTimeout) {
     conn.on('open', () => {
+        if (peer !== currentPeer) return;
+        if (connectTimeout) clearTimeout(connectTimeout);
         console.log('Connected to Host!');
         connections.push(conn);
         updateStatusUI('connected', `セッション接続中`);
@@ -1274,10 +1330,13 @@ function handleOutgoingConnection(conn) {
     });
 
     conn.on('data', (data) => {
+        if (peer !== currentPeer) return;
         handleDataMessage(data, conn.peer);
     });
 
     conn.on('close', () => {
+        if (connectTimeout) clearTimeout(connectTimeout);
+        if (peer !== currentPeer) return;
         console.log('Host disconnected.');
         updateStatusUI('disconnected', '接続が切断されました');
         removeConnection(conn);
@@ -1303,7 +1362,11 @@ function handleOutgoingConnection(conn) {
         }
     });
     
-    conn.on('error', () => removeConnection(conn));
+    conn.on('error', () => {
+        if (connectTimeout) clearTimeout(connectTimeout);
+        if (peer !== currentPeer) return;
+        removeConnection(conn);
+    });
 }
 
 function handleDataMessage(data, senderId) {
@@ -1551,7 +1614,7 @@ function switchMultiplayerMode(mode) {
     updatePeerCountUI();
 
     if (mode === 'grand') {
-        isHost = false; // Join as guest first, auto-failover handles hosting
+        isHost = true; // Host first, falls back to guest if taken on server
         roomId = 'TEKKIN-GRAND-ARENA-JAMYLAS';
         window.location.hash = roomId;
         updateModeIndicator();
@@ -1588,6 +1651,7 @@ function startQuickMatchSearch() {
     console.log(`Quick Match: Checking Band ${currentQuickMatchIndex}...`);
     roomId = `TEKKIN-BAND-JAMYLAS-${currentQuickMatchIndex}`;
     window.location.hash = roomId;
+    isHost = true; // Host first to quickly check ownership
     updateModeIndicator(`野良合奏 (バンド ${currentQuickMatchIndex} 検索中...)`);
     initMultiplayer(roomId);
 }
