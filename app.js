@@ -1243,6 +1243,7 @@ function handleDataMessage(data, senderId) {
     } else if (data.type === 'sync_guests') {
         allGuests = data.guests;
         console.log('Synced guests list from host:', allGuests);
+        updatePeerCountUI();
     } else if (data.type === 'room_full') {
         console.log(`Room ${roomId} is full! Moving to next room...`);
         isQuickMatchRoomFull = true;
@@ -1348,14 +1349,15 @@ function removeConnection(conn) {
         syncGuestsList();
     }
     
-    updatePeerCountUI();
     if (connections.length === 0) {
         if (isHost) {
             updateStatusUI('connected', 'ホストとして待機中');
         } else {
             updateStatusUI('disconnected', '接続が切断されました');
+            allGuests = [];
         }
     }
+    updatePeerCountUI();
 }
 
 function syncGuestsList() {
@@ -1393,6 +1395,7 @@ function handleHostDisconnect() {
             }
             peer = null;
         }
+        updatePeerCountUI();
         
         setTimeout(() => {
             console.log('Promoting to host now with ID:', roomId);
@@ -1412,6 +1415,7 @@ function handleHostDisconnect() {
             }
             peer = null;
         }
+        updatePeerCountUI();
         
         setTimeout(() => {
             console.log('Connecting to new host now...');
@@ -1449,6 +1453,7 @@ function switchMultiplayerMode(mode) {
         removeGuestMallet(peerId);
     });
     connections = [];
+    allGuests = [];
     updatePeerCountUI();
 
     if (mode === 'grand') {
@@ -1530,16 +1535,26 @@ function updateStatusUI(statusClass, text) {
             reconnectBtn.style.display = 'none';
         }
     }
+    updatePeerCountUI();
 }
 
 function updatePeerCountUI() {
     const label = document.getElementById('peerCountLabel');
     if (!label) return;
 
-    const count = connections.length;
-    if (count > 0) {
+    if (peer && (peer.open || connections.length > 0)) {
+        let count = 1;
+        if (isHost) {
+            count = connections.length + 1;
+        } else {
+            if (connections.length > 0) {
+                count = Math.max(connections.length + 1, allGuests.length + 1);
+            } else {
+                count = 1;
+            }
+        }
         label.style.display = 'inline';
-        label.textContent = `(接続人数: ${count + 1}人)`;
+        label.textContent = `(接続人数: ${count}人)`;
     } else {
         label.style.display = 'none';
     }
